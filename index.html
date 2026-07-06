@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Daily Earnings Tracker</title>
+  <meta name="description" content="Track your daily earnings and total contract progress" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Earnings" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET & VARIABLES ─────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --radius: 24px;
+      --radius-sm: 14px;
+      --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-display: 'Nunito', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+    [data-theme="dark"] {
+      --bg: #070b18;
+      --bg2: #0d1225;
+      --bg3: #111830;
+      --glass: rgba(255,255,255,0.05);
+      --glass-strong: rgba(255,255,255,0.09);
+      --glass-border: rgba(255,255,255,0.09);
+      --glass-border-strong: rgba(255,255,255,0.14);
+      --glass-hover: rgba(255,255,255,0.08);
+      --text: #f0f4ff;
+      --text-muted: rgba(240,244,255,0.42);
+      --text-soft: rgba(240,244,255,0.68);
+      --gold: #f5c842;
+      --gold2: #ffb347;
+      --gold-glow: rgba(245,200,66,0.22);
+      --emerald: #34d99e;
+      --emerald-glow: rgba(52,217,158,0.18);
+      --sapphire: #6c9cff;
+      --sapphire-glow: rgba(108,156,255,0.18);
+      --danger: #ff6b7a;
+      --shadow: rgba(0,0,0,0.55);
+    }
+    [data-theme="light"] {
+      --bg: #f0f3ff;
+      --bg2: #e6eaf8;
+      --bg3: #d8dff2;
+      --glass: rgba(255,255,255,0.62);
+      --glass-strong: rgba(255,255,255,0.82);
+      --glass-border: rgba(160,175,230,0.45);
+      --glass-border-strong: rgba(140,155,220,0.65);
+      --glass-hover: rgba(255,255,255,0.88);
+      --text: #0f1530;
+      --text-muted: rgba(15,21,48,0.42);
+      --text-soft: rgba(15,21,48,0.66);
+      --gold: #c98a08;
+      --gold2: #d97010;
+      --gold-glow: rgba(201,138,8,0.18);
+      --emerald: #0a9e69;
+      --emerald-glow: rgba(10,158,105,0.13);
+      --sapphire: #3660d8;
+      --sapphire-glow: rgba(54,96,216,0.13);
+      --danger: #d42848;
+      --shadow: rgba(80,100,180,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh; min-height: 100dvh;
+      overflow-x: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ── CANVAS BACKGROUND ─────────────────────────── */
+    #bgCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.55; }
+
+    /* ── CONFETTI ──────────────────────────────────── */
+    #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+
+    /* ── SCROLLBAR ─────────────────────────────────── */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
+    /* ── APP WRAPPER ───────────────────────────────── */
+    #app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 110px; }
+
+    /* ── TOP BAR — NOT sticky; scrolls with content ─ */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 20px 0;
+      /* NOT sticky — removed position:sticky to fix overlap */
+      background: transparent;
+    }
+    .topbar-brand { display: flex; flex-direction: column; }
+    .topbar-brand .greeting {
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 500;
+    }
+    .topbar-brand .brand-name {
+      font-family: var(--font-display); font-size: 20px; font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* ── GLASS EFFECT ON ALL ICON BTNS ────────────── */
+    .icon-btn {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border-strong);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all var(--transition);
+      backdrop-filter: blur(24px) saturate(1.8);
+      -webkit-backdrop-filter: blur(24px) saturate(1.8);
+      color: var(--text-soft);
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+    .icon-btn:hover { background: var(--glass-hover); transform: scale(1.06); }
+    .icon-btn svg { width: 18px; height: 18px; }
+
+    /* ── STATUS BAR ────────────────────────────────── */
+    .status-bar {
+      margin: 14px 20px 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .update-badge {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 14px; border-radius: 30px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border-strong);
+      font-size: 11px; color: var(--text-muted);
+      backdrop-filter: blur(24px) saturate(1.8);
+      -webkit-backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+    .update-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+
+    .currency-toggle-pill {
+      display: flex; border-radius: 30px; overflow: hidden;
+      background: var(--glass);
+      border: 1px solid var(--glass-border-strong);
+      backdrop-filter: blur(24px) saturate(1.8);
+      -webkit-backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+    .currency-btn {
+      padding: 6px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+      border: none; background: transparent; color: var(--text-muted);
+      transition: all 0.22s; font-family: var(--font-mono);
+    }
+    .currency-btn.active {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #0a0e1a; border-radius: 30px; margin: 2px;
+    }
+    /* INR rate chip */
+    .rate-chip {
+      font-size: 10px; color: var(--text-muted); letter-spacing: 0.3px;
+    }
+    .rate-chip.live { color: var(--emerald); }
+    .rate-chip.cached { color: var(--gold); }
+
+    /* ── HERO CARD (Total Earned) ──────────────────── */
+    .hero-card {
+      margin: 18px 20px 0; border-radius: 30px;
+      background: linear-gradient(145deg, rgba(245,200,66,0.09) 0%, rgba(108,156,255,0.06) 100%);
+      border: 1px solid rgba(245,200,66,0.16);
+      padding: 28px 26px 24px;
+      position: relative; overflow: hidden;
+      backdrop-filter: blur(32px) saturate(1.6);
+      -webkit-backdrop-filter: blur(32px) saturate(1.6);
+      box-shadow: 0 8px 32px var(--shadow);
+    }
+    [data-theme="light"] .hero-card { background: linear-gradient(145deg, rgba(201,138,8,0.07) 0%, rgba(54,96,216,0.05) 100%); }
+    .hero-card::before {
+      content: ''; position: absolute; top: -50px; right: -50px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-label {
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--gold); font-weight: 700; margin-bottom: 6px; opacity: 0.85;
+    }
+    /* FIXED: Nunito sans-serif — clean, rounded, highly legible */
+    .hero-amount {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 9.5vw, 50px);
+      font-weight: 900; line-height: 1; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 25%, var(--gold) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
+    [data-theme="light"] .hero-amount {
+      background: linear-gradient(135deg, #0f1530 25%, var(--gold) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      margin-top: 5px; font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .hero-sub span { color: var(--emerald); font-weight: 600; }
+    .hero-sub .gold-val { color: var(--gold); }
+
+    /* FIXED: Today's row is now BELOW hero-sub — no overlap with badge */
+    .hero-today-row {
+      margin-top: 16px; padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(52,217,158,0.07);
+      border: 1px solid rgba(52,217,158,0.16);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    [data-theme="light"] .hero-today-row {
+      background: rgba(10,158,105,0.06);
+      border-color: rgba(10,158,105,0.18);
+    }
+    .hero-today-left { display: flex; align-items: center; gap: 10px; }
+    .hero-today-icon {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: var(--emerald-glow);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .hero-today-icon svg { width: 18px; height: 18px; }
+    .hero-today-texts { display: flex; flex-direction: column; }
+    .hero-today-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .hero-today-amt {
+      font-family: var(--font-display); font-size: clamp(16px, 5vw, 22px); font-weight: 900;
+      color: var(--emerald); line-height: 1.1; white-space: nowrap;
+    }
+    .hero-today-note { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+    .today-badge {
+      background: var(--emerald-glow); border: 1px solid rgba(52,217,158,0.28);
+      color: var(--emerald); font-size: 10px; font-weight: 800;
+      padding: 5px 11px; border-radius: 20px; letter-spacing: 1px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .today-badge.pending {
+      background: rgba(245,200,66,0.09); border-color: rgba(245,200,66,0.28); color: var(--gold);
+    }
+
+    /* ── RATE TABS: Day / Week / Month ─────────────── */
+    .rate-tabs {
+      margin: 14px 20px 0;
+      display: flex; gap: 10px;
+    }
+    .rate-tab {
+      flex: 1; border-radius: 18px;
+      padding: 14px 10px 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border-strong);
+      backdrop-filter: blur(24px) saturate(1.8);
+      -webkit-backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: 0 3px 16px var(--shadow);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .rate-tab:hover { transform: translateY(-2px); box-shadow: 0 6px 22px var(--shadow); }
+    .rate-tab::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      border-radius: 2px 2px 0 0;
+    }
+    .rate-tab.day::before   { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+    .rate-tab.week::before  { background: linear-gradient(90deg, var(--sapphire), #a78bff); }
+    .rate-tab.month::before { background: linear-gradient(90deg, var(--emerald), #5eefc0); }
+    .rate-tab-emoji { font-size: 16px; line-height: 1; }
+    .rate-tab-val {
+      font-family: var(--font-display); font-size: 15px; font-weight: 900;
+      line-height: 1.1; text-align: center;
+    }
+    .rate-tab.day   .rate-tab-val { color: var(--gold); }
+    .rate-tab.week  .rate-tab-val { color: var(--sapphire); }
+    .rate-tab.month .rate-tab-val { color: var(--emerald); }
+    .rate-tab-lbl {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* ── PROGRESS CARD ─────────────────────────────── */
+    .progress-card {
+      margin: 14px 20px 0; border-radius: var(--radius);
+      background: var(--glass);
+      border: 1px solid var(--glass-border-strong);
+      padding: 22px;
+      backdrop-filter: blur(28px) saturate(1.7);
+      -webkit-backdrop-filter: blur(28px) saturate(1.7);
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .progress-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+    }
+    .progress-card-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .progress-card-pct { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--sapphire); }
+
+    /* FIXED: ring text is inside SVG with correct orientation (no tilt) */
+    .progress-ring-wrap { display: flex; align-items: center; gap: 20px; }
+    .ring-svg {
+      width: 88px; height: 88px; flex-shrink: 0;
+      /* rotate the whole SVG so arc starts from top */
+      transform: rotate(-90deg);
+    }
+    .ring-bg { fill: none; stroke: var(--glass-border); stroke-width: 8; }
+    .ring-fg {
+      fill: none; stroke-width: 8; stroke-linecap: round;
+      stroke: url(#ringGrad);
+      transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    /* Text inside SVG gets counter-rotated so it reads horizontally */
+    .ring-label-group {
+      /* counter-rotate 90 deg around center (48,48) */
+      transform-origin: 48px 48px;
+      transform: rotate(90deg);
+    }
+    .ring-pct-text {
+      font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700;
+      fill: var(--text); text-anchor: middle;
+    }
+    .ring-sub-text {
+      font-family: 'DM Sans', sans-serif; font-size: 8px;
+      fill: var(--text-muted); text-anchor: middle;
+    }
+    .progress-details { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+    .progress-row { display: flex; flex-direction: column; gap: 3px; }
+    .progress-row-header { display: flex; justify-content: space-between; }
+    .progress-row-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .progress-row-val { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text); }
+    .mini-bar { height: 4px; border-radius: 10px; background: var(--glass-border); overflow: hidden; }
+    .mini-bar-fill { height: 100%; border-radius: 10px; transition: width 1.5s cubic-bezier(0.4,0,0.2,1); }
+    .bar-gold    { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+    .bar-sapphire{ background: linear-gradient(90deg, var(--sapphire), #a78bff); }
+    .bar-emerald { background: linear-gradient(90deg, var(--emerald), #5eefc0); }
+
+    /* ── BIRYANI COUNTER CARD ──────────────────────── */
+    .biryani-card {
+      margin: 14px 20px 0; border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(245,200,66,0.10) 0%, rgba(255,107,53,0.06) 100%);
+      border: 1px solid rgba(245,200,66,0.18);
+      padding: 22px;
+      position: relative; overflow: hidden;
+      backdrop-filter: blur(28px) saturate(1.7);
+      -webkit-backdrop-filter: blur(28px) saturate(1.7);
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .biryani-card::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .biryani-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+      position: relative; z-index: 1;
+    }
+    .biryani-card-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .biryani-card-sub { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--gold); }
+    .biryani-main { display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
+    .biryani-leg-emoji {
+      font-size: 54px; flex-shrink: 0; line-height: 1;
+      filter: drop-shadow(0 4px 14px rgba(245,200,66,0.35));
+      animation: leg-wiggle 3.2s ease-in-out infinite;
+    }
+    @keyframes leg-wiggle {
+      0%, 100% { transform: rotate(-4deg); }
+      50% { transform: rotate(4deg); }
+    }
+    .biryani-count-block { flex: 1; }
+    .biryani-count-row { display: flex; align-items: baseline; gap: 8px; }
+    .biryani-count-num {
+      font-family: var(--font-display); font-weight: 900;
+      font-size: 40px; line-height: 1;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .biryani-count-label { font-size: 13px; font-weight: 700; color: var(--text-soft); }
+    .biryani-count-caption { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .biryani-plates {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+      position: relative; z-index: 1;
+    }
+    .biryani-plate { font-size: 18px; line-height: 1; opacity: 0.95; }
+    .biryani-plate.pending { opacity: 0.18; filter: grayscale(1); }
+    .biryani-next {
+      margin-top: 12px; font-size: 11px; color: var(--text-muted);
+      position: relative; z-index: 1;
+    }
+    .biryani-next b { color: var(--gold); font-family: var(--font-mono); }
+
+    /* ── CONTRACT JOURNEY CARD (Ship Tracker) ──────── */
+    .journey-card {
+      margin: 14px 20px 0; border-radius: var(--radius);
+      border: 1px solid rgba(108,156,255,0.18);
+      position: relative; overflow: hidden;
+      backdrop-filter: blur(28px) saturate(1.7);
+      -webkit-backdrop-filter: blur(28px) saturate(1.7);
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .journey-card-top {
+      padding: 22px 22px 14px;
+      position: relative; z-index: 2;
+      background: linear-gradient(145deg, rgba(108,156,255,0.10) 0%, rgba(52,217,158,0.06) 100%);
+    }
+    .journey-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+    }
+    .journey-card-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .journey-card-pct {
+      font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #fff;
+      background: linear-gradient(135deg, var(--sapphire), #a78bff);
+      padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px;
+    }
+
+    .journey-stats { display: flex; gap: 10px; }
+    .journey-stat { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .journey-stat-val {
+      font-family: var(--font-display); font-size: 19px; font-weight: 900; color: var(--text); line-height: 1.1;
+    }
+    .journey-stat.done .journey-stat-val { color: var(--emerald); }
+    .journey-stat.left .journey-stat-val { color: var(--gold); }
+    .journey-stat-lbl { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+
+    /* Ocean fills the rest of the card, edge to edge */
+    .ocean-wrap {
+      position: relative; width: 100%; height: 128px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(108,156,255,0.08) 0%, rgba(52,217,158,0.10) 100%);
+    }
+    .ocean-svg { width: 100%; height: 100%; display: block; }
+    .ocean-wave-back { fill: rgba(108,156,255,0.30); }
+    .ocean-wave-front { fill: rgba(52,217,158,0.38); }
+    [data-theme="light"] .ocean-wave-back { fill: rgba(54,96,216,0.22); }
+    [data-theme="light"] .ocean-wave-front { fill: rgba(10,158,105,0.24); }
+
+    .ship-group { transition: transform 1.8s cubic-bezier(0.4,0,0.2,1); }
+    .ship-smoke {
+      opacity: 0; animation: smoke-puff 2.6s ease-out infinite;
+    }
+    .ship-smoke.s2 { animation-delay: 0.9s; }
+    .ship-smoke.s3 { animation-delay: 1.8s; }
+    @keyframes smoke-puff {
+      0%   { opacity: 0; transform: translate(0,0) scale(0.4); }
+      15%  { opacity: 0.6; }
+      100% { opacity: 0; transform: translate(-9px,-20px) scale(1.3); }
+    }
+    .ship-propeller { transform-origin: 3px 33px; transform-box: view-box; animation: prop-spin 0.5s linear infinite; }
+    @keyframes prop-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Start / End markers anchored at the ship's departure & destination points */
+    .ocean-marker {
+      position: absolute; bottom: 6px; display: flex; flex-direction: column; align-items: center;
+      font-size: 9px; color: var(--text-soft); font-family: var(--font-mono); font-weight: 700;
+      text-shadow: 0 1px 3px var(--shadow);
+      pointer-events: none;
+    }
+    .ocean-marker .marker-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--text-soft);
+      margin-bottom: 3px; box-shadow: 0 0 0 3px rgba(255,255,255,0.12);
+    }
+    .ocean-marker.start { left: 10px; align-items: flex-start; }
+    .ocean-marker.end { right: 10px; align-items: flex-end; }
+
+    /* ── MOTIVATION CARD ───────────────────────────── */
+    .motive-card {
+      margin: 14px 20px 0; border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(108,156,255,0.07), rgba(245,200,66,0.05));
+      border: 1px solid var(--glass-border-strong);
+      padding: 20px 22px;
+      backdrop-filter: blur(28px) saturate(1.7);
+      -webkit-backdrop-filter: blur(28px) saturate(1.7);
+      box-shadow: 0 4px 20px var(--shadow);
+      position: relative; overflow: hidden; cursor: pointer;
+      transition: all var(--transition);
+    }
+    .motive-card:hover { transform: translateY(-2px); border-color: rgba(108,156,255,0.3); }
+    .motive-card::before {
+      content: ''; position: absolute; bottom: -24px; right: -24px;
+      width: 110px; height: 110px; border-radius: 50%;
+      background: radial-gradient(circle, var(--sapphire-glow) 0%, transparent 70%);
+    }
+    .motive-icon { font-size: 26px; margin-bottom: 8px; }
+    .motive-text {
+      font-family: var(--font-display); font-size: 15px; font-weight: 700;
+      line-height: 1.55; color: var(--text); margin-bottom: 8px;
+    }
+    .motive-tap { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+
+    /* ── PAGES ─────────────────────────────────────── */
+    .page { display: none; padding: 0; }
+    .page.active { display: block; }
+
+    /* Settings inner padding */
+    #settingsPage.page { padding: 20px; }
+
+    .page-title {
+      font-family: var(--font-display); font-size: 28px; font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    .settings-section {
+      background: var(--glass);
+      border: 1px solid var(--glass-border-strong);
+      border-radius: var(--radius); padding: 20px;
+      backdrop-filter: blur(24px) saturate(1.7);
+      -webkit-backdrop-filter: blur(24px) saturate(1.7);
+      box-shadow: 0 3px 16px var(--shadow);
+      margin-bottom: 14px;
+    }
+    .settings-section-title {
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--gold); font-weight: 700; margin-bottom: 14px; opacity: 0.85;
+    }
+    .field { margin-bottom: 13px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 6px; letter-spacing: 0.4px; }
+    .field input {
+      width: 100%; padding: 13px 15px; border-radius: 13px;
+      background: var(--bg3); border: 1px solid var(--glass-border);
+      color: var(--text); font-family: var(--font-mono); font-size: 15px;
+      transition: all 0.2s; outline: none;
+    }
+    .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+    .field input::placeholder { color: var(--text-muted); font-size: 13px; font-family: var(--font-body); }
+    .rate-info-row {
+      margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .rate-source-badge {
+      font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 700;
+      background: var(--glass); border: 1px solid var(--glass-border-strong);
+    }
+    .rate-source-badge.live   { color: var(--emerald); border-color: rgba(52,217,158,0.3); }
+    .rate-source-badge.cached { color: var(--gold);    border-color: rgba(245,200,66,0.3); }
+    .rate-source-badge.manual { color: var(--sapphire);border-color: rgba(108,156,255,0.3); }
+    .save-btn {
+      width: 100%; padding: 15px; border-radius: 15px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #0a0e1a; font-size: 15px; font-weight: 700; font-family: var(--font-body);
+      letter-spacing: 0.5px; transition: all var(--transition);
+      margin-top: 18px; box-shadow: 0 8px 24px var(--gold-glow);
+    }
+    .save-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px var(--gold-glow); }
+    .save-btn:active { transform: translateY(0); }
+    .reset-btn {
+      width: 100%; padding: 13px; border-radius: 15px; border: 1px solid rgba(255,107,122,0.3);
+      cursor: pointer; background: transparent; color: var(--danger);
+      font-size: 14px; font-weight: 600; font-family: var(--font-body);
+      margin-top: 9px; transition: all 0.2s;
+    }
+    .reset-btn:hover { background: rgba(255,107,122,0.07); }
+    .add-extra-btn {
+      width: 100%; padding: 12px; border-radius: 13px;
+      border: 1px dashed var(--glass-border-strong); background: transparent;
+      color: var(--gold); font-size: 13px; font-weight: 600;
+      font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
+      margin-top: 8px;
+    }
+    .add-extra-btn:hover { background: var(--gold-glow); border-color: var(--gold); }
+    .extra-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 13px; border-radius: 11px; background: var(--bg3); margin-bottom: 7px;
+    }
+    .extra-item-info { display: flex; flex-direction: column; gap: 2px; }
+    .extra-item-amt { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--gold); }
+    .extra-item-note { font-size: 11px; color: var(--text-muted); }
+    .extra-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 15px; padding: 4px; }
+    .no-extras { font-size: 12px; color: var(--text-muted); padding: 8px 0 4px; }
+
+    /* ── BOTTOM NAV ────────────────────────────────── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; z-index: 200;
+      padding: 10px 20px 20px;
+      background: linear-gradient(to top, var(--bg) 55%, transparent);
+    }
+    .nav-inner {
+      display: flex;
+      background: var(--glass-strong);
+      border: 1px solid var(--glass-border-strong);
+      border-radius: 20px; overflow: hidden;
+      backdrop-filter: blur(30px) saturate(2);
+      -webkit-backdrop-filter: blur(30px) saturate(2);
+      box-shadow: 0 4px 24px var(--shadow);
+    }
+    .nav-btn {
+      flex: 1; padding: 13px 10px; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; border: none; background: transparent; cursor: pointer; color: var(--text-muted);
+      font-size: 10px; font-family: var(--font-body); letter-spacing: 0.5px; font-weight: 600;
+      transition: all 0.2s; position: relative;
+    }
+    .nav-btn.active { color: var(--gold); }
+    .nav-btn.active::before {
+      content: ''; position: absolute; top: 8px; width: 24px; height: 2px;
+      background: var(--gold); border-radius: 10px;
+    }
+    .nav-btn svg { width: 22px; height: 22px; }
+
+    /* ── TOAST ─────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--emerald); color: #0a0e1a; padding: 11px 22px;
+      border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 9999;
+      opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── MODAL ─────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 500;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      width: 100%; max-width: 480px; background: var(--bg2);
+      border-radius: 22px 22px 0 0; padding: 26px 22px 40px;
+      border: 1px solid var(--glass-border-strong);
+      transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-handle { width: 38px; height: 4px; border-radius: 10px; background: var(--glass-border); margin: 0 auto 18px; }
+    .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 900; margin-bottom: 3px; }
+    .modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-cancel {
+      flex: 1; padding: 13px; border-radius: 13px; border: 1px solid var(--glass-border);
+      background: transparent; color: var(--text-soft); font-family: var(--font-body); font-size: 14px; cursor: pointer;
+    }
+    .modal-confirm {
+      flex: 2; padding: 13px; border-radius: 13px; border: none;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #0a0e1a; font-family: var(--font-body); font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+
+    /* ── EMPTY STATE ───────────────────────────────── */
+    .setup-prompt {
+      margin: 36px 20px; text-align: center; padding: 38px 22px;
+      background: var(--glass);
+      border: 1px dashed var(--glass-border-strong);
+      border-radius: var(--radius);
+      backdrop-filter: blur(22px);
+    }
+    .setup-icon { font-size: 46px; margin-bottom: 14px; animation: float 4s ease-in-out infinite; }
+    .setup-title { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 9px; }
+    .setup-text { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 22px; }
+    .setup-cta {
+      display: inline-block; padding: 13px 28px; border-radius: 13px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #0a0e1a; font-weight: 700; font-size: 14px; border: none; cursor: pointer;
+      font-family: var(--font-body); transition: all var(--transition);
+    }
+    .setup-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--gold-glow); }
+
+    /* ── ANIMATIONS ────────────────────────────────── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .fade-up { animation: fadeUp 0.55s ease both; }
+    .d1{animation-delay:0.08s} .d2{animation-delay:0.16s} .d3{animation-delay:0.24s}
+    .d4{animation-delay:0.32s} .d5{animation-delay:0.40s}
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <canvas id="confettiCanvas"></canvas>
+
+  <div id="app">
+    <!-- TOP BAR (not sticky) -->
+    <div class="topbar">
+      <div class="topbar-brand">
+        <span class="greeting" id="greeting">Good Morning</span>
+        <span class="brand-name">Earnings</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
+          <svg id="themeIcon" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" onclick="triggerCelebration()" title="Celebrate">
+          <svg fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <div class="update-badge">
+        <span class="update-dot"></span>
+        <span id="updateStatus">Updates at 4:00 PM</span>
+        &nbsp;<span id="rateChip" class="rate-chip"></span>
+      </div>
+      <div class="currency-toggle-pill">
+        <button class="currency-btn active" id="btnUSD" onclick="setCurrency('USD')">$</button>
+        <button class="currency-btn" id="btnINR" onclick="setCurrency('INR')">₹</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div id="dashPage" class="page active">
+      <div id="dashContent"></div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div id="settingsPage" class="page">
+      <div class="page-title fade-up">Settings</div>
+      <div class="page-sub fade-up d1">Configure your contract details</div>
+
+      <div class="settings-section fade-up d1">
+        <div class="settings-section-title">💼 Contract Details</div>
+        <div class="field"><label>Monthly Salary (USD)</label><input type="number" id="monthlySalary" placeholder="e.g. 2000" min="0" /></div>
+        <div class="field"><label>Contract Start Date</label><input type="date" id="startDate" /></div>
+        <div class="field"><label>Contract Duration (Days)</label><input type="number" id="contractDays" placeholder="e.g. 365" min="1" max="3650" /></div>
+      </div>
+
+      <div class="settings-section fade-up d2">
+        <div class="settings-section-title">💱 Exchange Rate</div>
+        <div class="field">
+          <label>1 USD = ? INR (manual fallback)</label>
+          <input type="number" id="exchangeRate" placeholder="e.g. 84" min="1" />
+        </div>
+        <div class="rate-info-row">
+          <span id="rateSourceBadge" class="rate-source-badge manual">Manual</span>
+          <span id="rateInfoText" style="font-size:11px;color:var(--text-muted)">Live rate will be fetched automatically</span>
+        </div>
+        <button style="margin-top:12px;padding:9px 16px;border-radius:11px;border:1px solid var(--glass-border-strong);background:var(--glass);color:var(--sapphire);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);" onclick="fetchLiveRate()">↻ Refresh Live Rate</button>
+      </div>
+
+      <div class="settings-section fade-up d3">
+        <div class="settings-section-title">⭐ Extra Earnings (USD)</div>
+        <div id="extrasList"></div>
+        <button class="add-extra-btn" onclick="showAddExtraModal()">+ Add Extra Earning</button>
+      </div>
+
+      <button class="save-btn fade-up d4" onclick="saveSettings()">Save & Apply</button>
+      <button class="reset-btn fade-up d5" onclick="confirmReset()">Reset All Data</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" id="navDash" onclick="showPage('dash')">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" id="navSettings" onclick="showPage('settings')">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        Settings
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ADD EXTRA MODAL -->
+  <div class="modal-overlay" id="extraModal" onclick="handleModalBackdrop(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Add Extra Earning</div>
+      <div class="modal-sub">Bonus, freelance, allowance, or any other income</div>
+      <div class="field"><label>Amount (USD)</label><input type="number" id="extraAmt" placeholder="e.g. 500" min="0" /></div>
+      <div class="field"><label>Note (optional)</label><input type="text" id="extraNote" placeholder="e.g. Performance bonus" maxlength="40" /></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm" onclick="addExtraEarning()">Add Earning</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ── STATE ──────────────────────────────────────────────────────
+  let state = { currency: 'USD', theme: 'dark', settings: null, extras: [] };
+  let liveRate = null;       // fetched exchange rate
+  let rateSource = 'manual'; // 'live' | 'cached' | 'manual'
+  let cachedRateDate = null;
+
+  const MOTIVES = [
+    { icon: '🔥', text: 'Every rupee in your account is proof that you showed up. Keep going.' },
+    { icon: '💎', text: 'Discipline is the bridge between your goals and your achievements.' },
+    { icon: '🚀', text: 'You are not just working. You are building your future, one day at a time.' },
+    { icon: '⚡', text: 'The money you earn today is the freedom you create tomorrow.' },
+    { icon: '🌟', text: 'Success is the sum of small efforts repeated day in and day out.' },
+    { icon: '💰', text: 'Your consistency is compounding. Every day worked is a day invested.' },
+    { icon: '🎯', text: 'You chose a goal. You committed. Now watch the numbers prove it.' },
+    { icon: '🦁', text: 'Hard work does not go unnoticed by your bank account.' },
+    { icon: '🌅', text: 'Another day, another deposit into your future self.' },
+    { icon: '⭐', text: 'The grind is quiet but the results are loud. Stay focused.' },
+    { icon: '🏆', text: 'You are exactly where you need to be. Trust the process.' },
+    { icon: '💪', text: 'Great things are not done by impulse, but by a series of small things brought together.' },
+  ];
+  let currentMotiveIdx = Math.floor(Math.random() * MOTIVES.length);
+
+  // ── PERSIST ────────────────────────────────────────────────────
+  function loadState() {
+    try {
+      const s = localStorage.getItem('det_state');
+      if (s) state = { ...state, ...JSON.parse(s) };
+      const rc = localStorage.getItem('det_rate_cache');
+      if (rc) {
+        const obj = JSON.parse(rc);
+        liveRate = obj.rate;
+        cachedRateDate = obj.date;
+        rateSource = 'cached';
+      }
+    } catch(e) {}
+  }
+  function saveState() { localStorage.setItem('det_state', JSON.stringify(state)); }
+
+  // ── LIVE EXCHANGE RATE ─────────────────────────────────────────
+  // Uses open.er-api.com (free, no key) with fallback chain
+  async function fetchLiveRate() {
+    const badge = document.getElementById('rateSourceBadge');
+    const info  = document.getElementById('rateInfoText');
+    try {
+      if (badge) { badge.textContent = '⟳ Fetching…'; badge.className = 'rate-source-badge manual'; }
+      // Primary: exchangerate-api open endpoint
+      const r = await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const rate = data.rates && data.rates.INR;
+      if (!rate) throw new Error('No INR rate in response');
+      liveRate = rate;
+      rateSource = 'live';
+      cachedRateDate = new Date().toISOString().split('T')[0];
+      localStorage.setItem('det_rate_cache', JSON.stringify({ rate, date: cachedRateDate }));
+      if (badge) { badge.textContent = '● Live'; badge.className = 'rate-source-badge live'; }
+      if (info)  info.textContent = `1 USD = ₹${rate.toFixed(2)} · Updated today`;
+      updateRateChip();
+      if (state.currency === 'INR') renderDash();
+    } catch(err) {
+      // Fallback: try frankfurter.app
+      try {
+        const r2 = await fetch('https://api.frankfurter.app/latest?from=USD&to=INR', { signal: AbortSignal.timeout(4000) });
+        const d2 = await r2.json();
+        const rate2 = d2.rates && d2.rates.INR;
+        if (!rate2) throw new Error();
+        liveRate = rate2;
+        rateSource = 'live';
+        cachedRateDate = new Date().toISOString().split('T')[0];
+        localStorage.setItem('det_rate_cache', JSON.stringify({ rate: rate2, date: cachedRateDate }));
+        if (badge) { badge.textContent = '● Live'; badge.className = 'rate-source-badge live'; }
+        if (info)  info.textContent = `1 USD = ₹${rate2.toFixed(2)} · Updated today`;
+        updateRateChip();
+        if (state.currency === 'INR') renderDash();
+      } catch(e2) {
+        // Use cached or manual
+        if (liveRate && rateSource === 'cached') {
+          if (badge) { badge.textContent = '◑ Cached'; badge.className = 'rate-source-badge cached'; }
+          if (info)  info.textContent = `1 USD = ₹${liveRate.toFixed(2)} · Cached from ${cachedRateDate || 'earlier'}`;
+        } else {
+          rateSource = 'manual';
+          if (badge) { badge.textContent = '○ Manual'; badge.className = 'rate-source-badge manual'; }
+          if (info)  info.textContent = 'Could not reach exchange API. Using manual rate.';
+        }
+        updateRateChip();
+      }
+    }
+  }
+
+  function getEffectiveRate() {
+    if (liveRate) return liveRate;
+    return state.settings?.exchangeRate || 84;
+  }
+
+  function updateRateChip() {
+    const chip = document.getElementById('rateChip');
+    if (!chip) return;
+    if (state.currency === 'INR') {
+      const r = getEffectiveRate();
+      chip.textContent = `₹${r.toFixed(0)}/$`;
+      chip.className = 'rate-chip ' + (rateSource === 'live' ? 'live' : rateSource === 'cached' ? 'cached' : '');
+    } else {
+      chip.textContent = '';
+    }
+  }
+
+  // ── CALCULATIONS ───────────────────────────────────────────────
+  function getEarnings() {
+    const s = state.settings;
+    if (!s) return null;
+    const now = new Date();
+    const start = new Date(s.startDate);
+    const dailyRate = s.monthlySalary / 30;
+    // contractDays is the source of truth; fall back to legacy contractMonths*30 for old saved data
+    const totalContractDays = s.contractDays || (s.contractMonths ? s.contractMonths * 30 : 0);
+    const cutoffToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 0, 0);
+    const effectiveNow = now >= cutoffToday ? now : new Date(now - 86400000);
+    let daysWorked = Math.floor((effectiveNow - start) / 86400000) + 1;
+    daysWorked = Math.max(0, Math.min(daysWorked, totalContractDays));
+    const daysRemaining = Math.max(0, totalContractDays - daysWorked);
+    const progressPct = totalContractDays > 0 ? (daysWorked / totalContractDays) * 100 : 0;
+    const extraTotal = (state.extras || []).reduce((sum, e) => sum + e.amount, 0);
+    const contractEarned = daysWorked * dailyRate;
+    const totalEarned = contractEarned + extraTotal;
+    const contractValue = dailyRate * totalContractDays;
+    const todayEarned = now >= cutoffToday ? dailyRate : 0;
+    const todayUnlocked = now >= cutoffToday;
+    // End date: start date counts as day 1, so contract ends (totalContractDays - 1) days after start
+    const endDate = new Date(start);
+    endDate.setDate(endDate.getDate() + Math.max(totalContractDays - 1, 0));
+
+    // ── BIRYANI COUNTER: count Sundays completed since contract start ──
+    let sundaysCompleted = 0;
+    {
+      const lastCountedDay = new Date(start.getTime() + daysWorked * 86400000);
+      // walk from start date to lastCountedDay (inclusive) counting Sundays
+      const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endCursor = new Date(lastCountedDay.getFullYear(), lastCountedDay.getMonth(), lastCountedDay.getDate());
+      while (cursor <= endCursor) {
+        if (cursor.getDay() === 0) sundaysCompleted++;
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      // find next upcoming Sunday date (for display)
+      var nextSundayCursor = new Date(endCursor);
+      nextSundayCursor.setDate(nextSundayCursor.getDate() + 1);
+      while (nextSundayCursor.getDay() !== 0) nextSundayCursor.setDate(nextSundayCursor.getDate() + 1);
+    }
+    const nextBiryaniDate = typeof nextSundayCursor !== 'undefined' ? nextSundayCursor : null;
+
+    return { dailyRate, totalEarned, contractEarned, extraTotal, contractValue,
+             daysWorked, daysRemaining, totalDays: totalContractDays, progressPct,
+             todayEarned, todayUnlocked, cutoffToday, now, startDate: start, endDate,
+             sundaysCompleted, nextBiryaniDate };
+  }
+
+  // ── FORMATTERS ───────────────────────────────────────────────
+  function fmtBig(val) {
+    // Hero & today amounts — FULL digits, bank-statement style (no K/L/Cr shorthand)
+    if (state.currency === 'INR') {
+      const inr = Math.round(val * getEffectiveRate());
+      return '₹' + inr.toLocaleString('en-IN');
+    }
+    return '$' + Math.round(val).toLocaleString('en-US');
+  }
+
+  function fmtTab(val) {
+    // Rate tabs — compact, no decimals
+    if (state.currency === 'INR') {
+      const inr = val * getEffectiveRate();
+      if (inr >= 100000) return '₹' + (inr / 100000).toFixed(1) + 'L';
+      if (inr >= 1000)   return '₹' + Math.round(inr / 1000) + 'K';
+      return '₹' + Math.round(inr);
+    }
+    if (val >= 1000) return '$' + (val / 1000).toFixed(1) + 'K';
+    return '$' + Math.round(val);
+  }
+
+  function fmt(val, forceCur) {
+    const cur = forceCur || state.currency;
+    if (cur === 'INR') {
+      const inr = val * getEffectiveRate();
+      if (inr >= 100000) return '₹' + (inr / 100000).toFixed(1) + 'L';
+      if (inr >= 1000)   return '₹' + Math.round(inr / 1000) + 'K';
+      return '₹' + Math.round(inr).toLocaleString('en-IN');
+    }
+    if (val >= 1000) return '$' + (val / 1000).toFixed(1) + 'K';
+    return '$' + Math.round(val);
+  }
+
+  // ── RENDER DASHBOARD ───────────────────────────────────────────
+  function renderDash() {
+    const e = getEarnings();
+    const container = document.getElementById('dashContent');
+    updateRateChip();
+
+    if (!state.settings) {
+      container.innerHTML = `
+        <div class="setup-prompt fade-up">
+          <div class="setup-icon">💼</div>
+          <div class="setup-title">Welcome!</div>
+          <div class="setup-text">Set up your contract details to start tracking your earnings and see your progress in real time.</div>
+          <button class="setup-cta" onclick="showPage('settings')">Configure Now →</button>
+        </div>`;
+      return;
+    }
+
+    const pct = Math.round(e.progressPct);
+    const earningsPct = e.contractValue > 0 ? Math.min((e.totalEarned / e.contractValue) * 100, 100) : 0;
+    const weeklyRate = e.dailyRate * 7;
+    const motive = MOTIVES[currentMotiveIdx];
+    const circumference = 2 * Math.PI * 38;
+    const dash = circumference - (pct / 100) * circumference;
+
+    // Status text
+    const now = new Date();
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 0, 0);
+    let statusText = now >= cutoff
+      ? '✓ Updated today'
+      : `Updates in ${Math.max(0, 15 - now.getHours())}h ${60 - now.getMinutes()}m`;
+    document.getElementById('updateStatus').textContent = statusText;
+
+    container.innerHTML = `
+      <!-- HERO -->
+      <div class="hero-card fade-up d1">
+        <div class="hero-label">Total Earned</div>
+        <div class="hero-amount" id="heroAmt">₹0</div>
+        <div class="hero-sub">
+          Contract: <span>${fmt(e.contractValue)}</span>
+          &nbsp;·&nbsp; Extra: <span class="gold-val">${fmt(e.extraTotal)}</span>
+        </div>
+        <!-- TODAY row INSIDE hero card — zero overlap -->
+        <div class="hero-today-row">
+          <div class="hero-today-left">
+            <div class="hero-today-icon">
+              <svg fill="none" stroke="var(--emerald)" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3 2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="hero-today-texts">
+              <div class="hero-today-label">Today's Earning</div>
+              <div class="hero-today-amt" id="todayAmt">₹0</div>
+              <div class="hero-today-note">${e.todayUnlocked ? 'Credited after 4:00 PM' : 'Credits at 4:00 PM today'}</div>
+            </div>
+          </div>
+          <div class="today-badge ${e.todayUnlocked ? '' : 'pending'}">${e.todayUnlocked ? '✓ PAID' : 'PENDING'}</div>
+        </div>
+      </div>
+
+      <!-- RATE TABS: Day / Week / Month -->
+      <div class="rate-tabs fade-up d2">
+        <div class="rate-tab day">
+          <div class="rate-tab-emoji">☀️</div>
+          <div class="rate-tab-val" id="tabDay">—</div>
+          <div class="rate-tab-lbl">Per Day</div>
+        </div>
+        <div class="rate-tab week">
+          <div class="rate-tab-emoji">📅</div>
+          <div class="rate-tab-val" id="tabWeek">—</div>
+          <div class="rate-tab-lbl">Per Week</div>
+        </div>
+        <div class="rate-tab month">
+          <div class="rate-tab-emoji">🗓️</div>
+          <div class="rate-tab-val" id="tabMonth">—</div>
+          <div class="rate-tab-lbl">Per Month</div>
+        </div>
+      </div>
+
+      <!-- BIRYANI COUNTER CARD -->
+      <div class="biryani-card fade-up d3">
+        <div class="biryani-card-header">
+          <div class="biryani-card-title">Biryani Counter</div>
+          <div class="biryani-card-sub">Every Sunday 🍛</div>
+        </div>
+        <div class="biryani-main">
+          <div class="biryani-leg-emoji">🍗</div>
+          <div class="biryani-count-block">
+            <div class="biryani-count-row">
+              <div class="biryani-count-num">${e.sundaysCompleted}</div>
+              <div class="biryani-count-label">Biryani${e.sundaysCompleted === 1 ? '' : 's'} earned</div>
+            </div>
+            <div class="biryani-count-caption">Sundays completed since contract start</div>
+          </div>
+        </div>
+        <div class="biryani-plates">
+          ${Array.from({length: Math.max(e.sundaysCompleted, 1)}, (_, i) =>
+            `<span class="biryani-plate${i < e.sundaysCompleted ? '' : ' pending'}">🍛</span>`
+          ).join('')}
+        </div>
+        ${e.nextBiryaniDate ? `<div class="biryani-next">Next biryani: <b>${e.nextBiryaniDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</b></div>` : ''}
+      </div>
+
+      <!-- CONTRACT JOURNEY CARD -->
+      <div class="journey-card fade-up d3">
+        <div class="journey-card-top">
+          <div class="journey-card-header">
+            <div class="journey-card-title">Contract Journey</div>
+            <div class="journey-card-pct">${pct}% complete</div>
+          </div>
+          <div class="journey-stats">
+            <div class="journey-stat done">
+              <div class="journey-stat-val">${e.daysWorked}</div>
+              <div class="journey-stat-lbl">Days Done</div>
+            </div>
+            <div class="journey-stat left">
+              <div class="journey-stat-val">${e.daysRemaining}</div>
+              <div class="journey-stat-lbl">Days Left</div>
+            </div>
+            <div class="journey-stat">
+              <div class="journey-stat-val">${e.totalDays}</div>
+              <div class="journey-stat-lbl">Total Days</div>
+            </div>
+          </div>
+        </div>
+        <div class="ocean-wrap">
+          <svg class="ocean-svg" viewBox="0 0 400 128" preserveAspectRatio="none">
+            <path id="waveBack" class="ocean-wave-back" d="M0,64 Q50,52 100,64 T200,64 T300,64 T400,64 V128 H0 Z" />
+            <path id="waveFront" class="ocean-wave-front" d="M0,80 Q50,70 100,80 T200,80 T300,80 T400,80 V128 H0 Z" />
+            <g id="shipGroup" class="ship-group" transform="translate(${16 + (pct/100) * 328},50)">
+              <!-- bow wake (front of ship, direction of travel = right) -->
+              <ellipse cx="58" cy="31" rx="9" ry="3" fill="rgba(255,255,255,0.30)"/>
+              <ellipse cx="8" cy="30" rx="7" ry="2.4" fill="rgba(255,255,255,0.18)"/>
+              <!-- funnel -->
+              <rect x="26" y="4" width="8" height="12" rx="1.5" fill="#3a4257"/>
+              <rect x="26" y="4" width="8" height="3" rx="1.5" fill="var(--gold)"/>
+              <!-- smoke — emitted from funnel top, drifts backward (toward stern, left) and up -->
+              <circle class="ship-smoke s1" cx="30" cy="3" r="3.2" fill="rgba(225,231,242,0.85)"/>
+              <circle class="ship-smoke s2" cx="30" cy="3" r="3.2" fill="rgba(225,231,242,0.85)"/>
+              <circle class="ship-smoke s3" cx="30" cy="3" r="3.2" fill="rgba(225,231,242,0.85)"/>
+              <!-- hull -->
+              <path d="M0,26 L60,26 L54,38 L6,38 Z" fill="var(--sapphire)"/>
+              <path d="M4,30 L56,30 L52,34 L8,34 Z" fill="rgba(255,255,255,0.14)"/>
+              <!-- deck + containers -->
+              <rect x="4" y="19" width="14" height="7" rx="1" fill="#ff8a5b"/>
+              <rect x="19" y="19" width="14" height="7" rx="1" fill="#5eefc0"/>
+              <!-- bridge -->
+              <rect x="34" y="10" width="17" height="16" rx="2" fill="#eef2fb"/>
+              <rect x="37" y="13" width="4" height="4" rx="0.5" fill="var(--sapphire)"/>
+              <rect x="43" y="13" width="4" height="4" rx="0.5" fill="var(--sapphire)"/>
+              <rect x="37" y="19" width="10" height="3" rx="0.5" fill="var(--sapphire)"/>
+              <!-- propeller (stern, back of ship) -->
+              <g class="ship-propeller">
+                <line x1="3" y1="30" x2="3" y2="36" stroke="#8fa3c8" stroke-width="1"/>
+                <line x1="0.5" y1="33" x2="5.5" y2="33" stroke="#8fa3c8" stroke-width="1"/>
+              </g>
+              <circle cx="3" cy="33" r="2.1" fill="none" stroke="#8fa3c8" stroke-width="0.8"/>
+            </g>
+          </svg>
+          <div class="ocean-marker start">
+            <span class="marker-dot"></span>
+            <span>START</span>
+            <span>${e.startDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+          </div>
+          <div class="ocean-marker end">
+            <span class="marker-dot"></span>
+            <span>END</span>
+            <span>${e.endDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOTIVATION -->
+      <div class="motive-card fade-up d4" onclick="nextMotive()">
+        <div class="motive-icon">${motive.icon}</div>
+        <div class="motive-text">"${motive.text}"</div>
+        <div class="motive-tap">Tap for next quote</div>
+      </div>
+    `;
+
+    // Animate numbers after paint
+    setTimeout(() => {
+      animateCounter(document.getElementById('heroAmt'),  e.totalEarned,  fmtBig, 1400);
+      animateCounter(document.getElementById('todayAmt'), e.todayEarned,  fmtBig, 1000);
+      animateCounter(document.getElementById('tabDay'),   e.dailyRate,    fmtTab, 900);
+      animateCounter(document.getElementById('tabWeek'),  weeklyRate,     fmtTab, 1000);
+      animateCounter(document.getElementById('tabMonth'), state.settings.monthlySalary, fmtTab, 1100);
+
+      // Animate ring
+      const ring = document.getElementById('ringCircle');
+      if (ring) ring.style.strokeDashoffset = dash;
+
+      // Animate bars
+      setTimeout(() => {
+        ['barDays','barRemain','barEarned'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.width = el.dataset.t;
+        });
+      }, 200);
+
+      // Start ocean wave flow (cancel previous loop first to avoid stacking)
+      if (oceanRAF) cancelAnimationFrame(oceanRAF);
+      animateOcean();
+    }, 280);
+  }
+
+  // ── COUNTER ANIMATION ──────────────────────────────────────────
+  function animateCounter(el, target, formatter, duration) {
+    if (!el) return;
+    const t0 = performance.now();
+    function tick(t) {
+      const p = Math.min((t - t0) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 4);
+      el.textContent = formatter(target * e);
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = formatter(target);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ── SETTINGS ───────────────────────────────────────────────────
+  function populateSettings() {
+    const s = state.settings || {};
+    document.getElementById('monthlySalary').value  = s.monthlySalary  || '';
+    document.getElementById('startDate').value       = s.startDate      || '';
+    document.getElementById('contractDays').value    = s.contractDays   || '';
+    document.getElementById('exchangeRate').value    = s.exchangeRate   || 84;
+    renderExtrasList();
+    // Update badge in settings
+    const badge = document.getElementById('rateSourceBadge');
+    const info  = document.getElementById('rateInfoText');
+    if (badge && info) {
+      if (rateSource === 'live' && liveRate) {
+        badge.textContent = '● Live'; badge.className = 'rate-source-badge live';
+        info.textContent  = `1 USD = ₹${liveRate.toFixed(2)} · Updated today`;
+      } else if (rateSource === 'cached' && liveRate) {
+        badge.textContent = '◑ Cached'; badge.className = 'rate-source-badge cached';
+        info.textContent  = `1 USD = ₹${liveRate.toFixed(2)} · Cached from ${cachedRateDate || 'earlier'}`;
+      } else {
+        badge.textContent = '○ Manual'; badge.className = 'rate-source-badge manual';
+        info.textContent  = 'Live rate will be fetched automatically';
+      }
+    }
+  }
+
+  function saveSettings() {
+    const salary = parseFloat(document.getElementById('monthlySalary').value);
+    const startDate = document.getElementById('startDate').value;
+    const days = parseInt(document.getElementById('contractDays').value);
+    const rate = parseFloat(document.getElementById('exchangeRate').value) || 84;
+    if (!salary || salary <= 0) { showToast('Enter a valid monthly salary', '⚠️'); return; }
+    if (!startDate) { showToast('Select a contract start date', '⚠️'); return; }
+    if (!days || days <= 0) { showToast('Enter contract duration', '⚠️'); return; }
+    state.settings = { monthlySalary: salary, startDate, contractDays: days, exchangeRate: rate };
+    saveState();
+    showToast('Settings saved!', '✓');
+    setTimeout(() => showPage('dash'), 700);
+  }
+
+  function renderExtrasList() {
+    const list = document.getElementById('extrasList');
+    if (!list) return;
+    if (!state.extras || state.extras.length === 0) {
+      list.innerHTML = `<div class="no-extras">No extras added yet</div>`;
+      return;
+    }
+    list.innerHTML = state.extras.map((ex, i) => `
+      <div class="extra-item">
+        <div class="extra-item-info">
+          <div class="extra-item-amt">$${ex.amount}</div>
+          <div class="extra-item-note">${ex.note || 'Extra earning'} · ${new Date(ex.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+        </div>
+        <button class="extra-del" onclick="deleteExtra(${i})">✕</button>
+      </div>`).join('');
+  }
+
+  function showAddExtraModal() {
+    document.getElementById('extraAmt').value = '';
+    document.getElementById('extraNote').value = '';
+    document.getElementById('extraModal').classList.add('open');
+    setTimeout(() => document.getElementById('extraAmt').focus(), 380);
+  }
+  function closeModal() { document.getElementById('extraModal').classList.remove('open'); }
+  function handleModalBackdrop(e) { if (e.target === document.getElementById('extraModal')) closeModal(); }
+
+  function addExtraEarning() {
+    const amt = parseFloat(document.getElementById('extraAmt').value);
+    const note = document.getElementById('extraNote').value.trim();
+    if (!amt || amt <= 0) { showToast('Enter a valid amount', '⚠️'); return; }
+    state.extras = state.extras || [];
+    state.extras.push({ amount: amt, note, date: new Date().toISOString() });
+    saveState(); closeModal(); renderExtrasList();
+    showToast('Extra earning added!', '⭐');
+  }
+
+  function deleteExtra(idx) {
+    state.extras.splice(idx, 1); saveState(); renderExtrasList(); showToast('Removed', '');
+  }
+
+  function confirmReset() {
+    if (confirm('Reset all data? This cannot be undone.')) {
+      state.settings = null; state.extras = []; saveState();
+      populateSettings(); showToast('Data reset', '');
+      setTimeout(() => showPage('dash'), 500);
+    }
+  }
+
+  // ── NAVIGATION ─────────────────────────────────────────────────
+  function showPage(page) {
+    document.getElementById('dashPage').classList.toggle('active', page === 'dash');
+    document.getElementById('settingsPage').classList.toggle('active', page === 'settings');
+    document.getElementById('navDash').classList.toggle('active', page === 'dash');
+    document.getElementById('navSettings').classList.toggle('active', page === 'settings');
+    if (page === 'dash') renderDash();
+    if (page === 'settings') populateSettings();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── CURRENCY ───────────────────────────────────────────────────
+  function setCurrency(cur) {
+    state.currency = cur; saveState();
+    document.getElementById('btnUSD').classList.toggle('active', cur === 'USD');
+    document.getElementById('btnINR').classList.toggle('active', cur === 'INR');
+    updateRateChip();
+    renderDash();
+  }
+
+  // ── THEME ──────────────────────────────────────────────────────
+  function toggleTheme() {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', state.theme);
+    saveState(); updateThemeIcon();
+  }
+  function updateThemeIcon() {
+    const icon = document.getElementById('themeIcon');
+    if (state.theme === 'dark') {
+      icon.innerHTML = `<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>`;
+    } else {
+      icon.innerHTML = `<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/>`;
+    }
+  }
+
+  // ── GREETING ───────────────────────────────────────────────────
+  function updateGreeting() {
+    const h = new Date().getHours();
+    document.getElementById('greeting').textContent =
+      h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+  }
+
+  function nextMotive() {
+    currentMotiveIdx = (currentMotiveIdx + 1) % MOTIVES.length;
+    renderDash();
+  }
+
+  // ── TOAST ──────────────────────────────────────────────────────
+  function showToast(msg, icon) {
+    const t = document.getElementById('toast');
+    t.textContent = (icon ? icon + ' ' : '') + msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ── CONFETTI (on load + manual) ────────────────────────────────
+  // Speed tuned: vy 1–2.5, gravity 0.06 — professional gentle fall
+  function triggerCelebration(autoMode) {
+    const canvas = document.getElementById('confettiCanvas');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#f5c842','#ffb347','#6c9cff','#34d99e','#ff6b7a','#ffffff','#a78bff'];
+    const count = autoMode ? 100 : 70;
+    const particles = [];
+
+    for (let i = 0; i < count; i++) {
+      const w = Math.random() * 8 + 4;
+      const h = w * (0.4 + Math.random() * 0.6);
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: -Math.random() * canvas.height * 0.5 - 10, // stagger start heights
+        vx: (Math.random() - 0.5) * 2.5,
+        vy: Math.random() * 1.5 + 0.8,   // gentle speed
+        color: colors[Math.floor(Math.random() * colors.length)],
+        w, h,
+        rotation: Math.random() * 360,
+        rotV: (Math.random() - 0.5) * 3,
+        alpha: 1,
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: 0.04 + Math.random() * 0.03,
+        shape: Math.random() > 0.45 ? 'rect' : Math.random() > 0.5 ? 'circle' : 'strip'
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      for (const p of particles) {
+        p.wobble += p.wobbleSpeed;
+        p.vx += Math.sin(p.wobble) * 0.05;    // gentle side sway
+        p.x  += p.vx;
+        p.y  += p.vy;
+        p.vy += 0.06;                          // low gravity = slow fall
+        p.rotation += p.rotV;
+        // Fade only near bottom
+        if (p.y > canvas.height * 0.75) p.alpha -= 0.018;
+        if (p.alpha > 0 && p.y < canvas.height + 20) {
+          alive = true;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.alpha);
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          if (p.shape === 'rect') {
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          } else if (p.shape === 'circle') {
+            ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill();
+          } else {
+            ctx.fillRect(-p.w / 2, -1.5, p.w, 3);
+          }
+          ctx.restore();
+        }
+      }
+      if (alive) requestAnimationFrame(draw);
+      else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    draw();
+    if (!autoMode) showToast('Keep earning! 🎉');
+  }
+
+  // ── OCEAN WAVE ANIMATION (flowing water under the ship) ─────────
+  // Built from a sine function sampled across the viewBox width, with a
+  // continuously-increasing phase offset. Since sin() is perfectly periodic,
+  // wrapping the phase (time % anything) never creates a visible seam —
+  // the shape only ever depends on (x + phase), so motion is truly seamless.
+  let oceanRAF = null;
+  function buildWavePath(phase, baseY, amplitude, width, height, wavelength) {
+    const step = 8;
+    let d = `M0,${(baseY + amplitude * Math.sin(phase)).toFixed(2)}`;
+    for (let x = 0; x <= width; x += step) {
+      const y = baseY + amplitude * Math.sin((x / wavelength) + phase);
+      d += ` L${x},${y.toFixed(2)}`;
+    }
+    d += ` L${width},${height} L0,${height} Z`;
+    return d;
+  }
+  function animateOcean() {
+    const back = document.getElementById('waveBack');
+    const front = document.getElementById('waveFront');
+    if (!back || !front) { oceanRAF = null; return; }
+    const t0 = performance.now();
+    function frame(t) {
+      const back2 = document.getElementById('waveBack');
+      const front2 = document.getElementById('waveFront');
+      if (!back2 || !front2) { oceanRAF = null; return; }
+      const time = (t - t0) / 1000;
+      // gentle natural flow speed — phase increases forever, no reset ever needed
+      // shorter wavelength = smaller, choppier, more realistic water ripples
+      back2.setAttribute('d', buildWavePath(time * 1.3, 64, 5, 400, 128, 26));
+      front2.setAttribute('d', buildWavePath(time * 1.9 + 1.4, 80, 4.5, 400, 128, 19));
+      oceanRAF = requestAnimationFrame(frame);
+    }
+    oceanRAF = requestAnimationFrame(frame);
+  }
+
+  // ── BACKGROUND CANVAS ──────────────────────────────────────────
+  function initBgCanvas() {
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const SHAPES = ['circle','star','diamond'];
+    const count = Math.min(28, Math.floor(window.innerWidth / 18));
+    const pts = Array.from({ length: count }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      size: Math.random() * 12 + 4,
+      alpha: Math.random() * 0.25 + 0.05,
+      shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 0.4,
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: Math.random() * 0.015 + 0.005
+    }));
+
+    function drawStar(c, x, y, r) {
+      c.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const a  = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const ai = ((i * 4 + 2) * Math.PI) / 5 - Math.PI / 2;
+        i === 0 ? c.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r)
+                : c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+        c.lineTo(x + Math.cos(ai) * r * 0.42, y + Math.sin(ai) * r * 0.42);
+      }
+      c.closePath();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const bc = isDark ? '245,200,66' : '170,130,10';
+
+      for (const p of pts) {
+        p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.pulse += p.pulseSpeed;
+        if (p.x < -20) p.x = canvas.width + 20;
+        if (p.x > canvas.width + 20) p.x = -20;
+        if (p.y < -20) p.y = canvas.height + 20;
+        if (p.y > canvas.height + 20) p.y = -20;
+
+        const a = p.alpha * (0.65 + 0.35 * Math.sin(p.pulse));
+        ctx.save(); ctx.globalAlpha = a;
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = `rgba(${bc},0.9)`;
+
+        if      (p.shape === 'circle') { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,Math.PI*2); ctx.fill(); }
+        else if (p.shape === 'diamond'){ ctx.beginPath(); ctx.moveTo(0,-p.size/2); ctx.lineTo(p.size/3,0); ctx.lineTo(0,p.size/2); ctx.lineTo(-p.size/3,0); ctx.closePath(); ctx.fill(); }
+        else                           { drawStar(ctx,0,0,p.size/2); ctx.fill(); }
+        ctx.restore();
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────
+  function init() {
+    loadState();
+    document.documentElement.setAttribute('data-theme', state.theme);
+    updateThemeIcon();
+    updateGreeting();
+    // Sync currency buttons
+    document.getElementById('btnUSD').classList.toggle('active', state.currency === 'USD');
+    document.getElementById('btnINR').classList.toggle('active', state.currency === 'INR');
+    renderDash();
+    initBgCanvas();
+
+    // Confetti on page load — gentle, professional
+    setTimeout(() => triggerCelebration(true), 400);
+
+    // Fetch live rate in background
+    fetchLiveRate();
+
+    // Auto-refresh at 4 PM boundary
+    setInterval(() => {
+      const n = new Date();
+      if (n.getHours() === 16 && n.getMinutes() === 0 && n.getSeconds() < 8) {
+        renderDash(); triggerCelebration(false);
+      }
+    }, 5000);
+  }
+
+  init();
+  </script>
+</body>
+</html>
