@@ -494,6 +494,85 @@
     }
     .motive-tap { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
 
+    /* ── MOOD CARD (on dashboard, below motivation) ────────── */
+    .mood-card {
+      margin: 14px 20px 0; border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(52,217,158,0.07), rgba(108,156,255,0.05));
+      border: 1px solid var(--glass-border-strong);
+      padding: 18px 22px;
+      backdrop-filter: blur(28px) saturate(1.7);
+      -webkit-backdrop-filter: blur(28px) saturate(1.7);
+      box-shadow: 0 4px 20px var(--shadow);
+      cursor: pointer; transition: all var(--transition);
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    }
+    .mood-card:hover { transform: translateY(-2px); border-color: rgba(52,217,158,0.3); }
+    .mood-card-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .mood-card-emoji {
+      font-size: 34px; line-height: 1; flex-shrink: 0;
+      filter: drop-shadow(0 3px 10px var(--emerald-glow));
+    }
+    .mood-card-texts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .mood-card-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .mood-card-val { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text); }
+    .mood-card-note { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mood-card-arrow { font-size: 18px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* ── MOOD PICKER MODAL (evening popup + manual open) ──── */
+    .mood-modal .modal { max-height: 88vh; overflow-y: auto; }
+    .mood-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin: 18px 0 6px;
+    }
+    .mood-opt {
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
+      padding: 14px 6px; border-radius: 16px;
+      background: var(--bg3); border: 1.5px solid var(--glass-border);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .mood-opt:hover { border-color: var(--glass-border-strong); transform: translateY(-2px); }
+    .mood-opt.selected { border-color: var(--emerald); background: var(--emerald-glow); }
+    .mood-opt-emoji { font-size: 28px; line-height: 1; }
+    .mood-opt-lbl { font-size: 10.5px; font-weight: 700; color: var(--text-soft); text-align: center; letter-spacing: 0.2px; }
+    .mood-other-field { margin-top: 4px; display: none; }
+    .mood-other-field.show { display: block; }
+    .mood-stress-row { margin-top: 16px; }
+    .mood-stress-row label { display: block; font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px; }
+    .stress-dots { display: flex; gap: 8px; justify-content: space-between; }
+    .stress-dot {
+      flex: 1; height: 34px; border-radius: 10px; cursor: pointer;
+      background: var(--bg3); border: 1.5px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .stress-dot.selected {
+      background: linear-gradient(135deg, var(--sapphire), #a78bff);
+      border-color: transparent; color: #fff;
+    }
+
+    /* ── MOOD HISTORY / GRAPH MODAL ────────────────────────── */
+    .mood-history-toggle {
+      display: flex; border-radius: 30px; overflow: hidden;
+      background: var(--bg3); border: 1px solid var(--glass-border-strong);
+      margin-bottom: 18px; width: fit-content;
+    }
+    .mood-history-toggle button {
+      padding: 7px 18px; font-size: 12px; font-weight: 700; cursor: pointer;
+      border: none; background: transparent; color: var(--text-muted);
+      font-family: var(--font-body); transition: all 0.2s;
+    }
+    .mood-history-toggle button.active {
+      background: linear-gradient(135deg, var(--emerald), #5eefc0);
+      color: #06251b; border-radius: 30px; margin: 2px;
+    }
+    .mood-chart-wrap { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+    .mood-chart-svg { display: block; min-width: 100%; }
+    .mood-chart-empty { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 13px; }
+    .mood-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+    .mood-legend-item { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--text-muted); }
+    .mood-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
     /* ── PAGES ─────────────────────────────────────── */
     .page { display: none; padding: 0; }
     .page.active { display: block; }
@@ -780,6 +859,53 @@
     </div>
   </div>
 
+  <!-- MOOD PICKER MODAL -->
+  <div class="modal-overlay mood-modal" id="moodModal" onclick="handleMoodBackdrop(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">How was today?</div>
+      <div class="modal-sub" id="moodModalSub">Log your mood for the day</div>
+
+      <div class="mood-grid" id="moodGrid"></div>
+
+      <div class="field mood-other-field" id="moodOtherField">
+        <label>Describe your day</label>
+        <input type="text" id="moodOtherText" placeholder="e.g. Rough weather, long shift" maxlength="60" />
+      </div>
+
+      <div class="mood-stress-row">
+        <label>Stress level today</label>
+        <div class="stress-dots" id="stressDots"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeMoodModal()">Skip</button>
+        <button class="modal-confirm" onclick="saveMoodEntry()">Save Mood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOOD HISTORY / GRAPH MODAL -->
+  <div class="modal-overlay" id="moodHistoryModal" onclick="handleMoodHistoryBackdrop(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Mood History</div>
+      <div class="modal-sub">Last 30 days</div>
+
+      <div class="mood-history-toggle">
+        <button id="histBtnMood" class="active" onclick="setMoodHistoryView('mood')">Mood</button>
+        <button id="histBtnStress" onclick="setMoodHistoryView('stress')">Stress</button>
+      </div>
+
+      <div id="moodChartContainer"></div>
+
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeMoodHistoryModal()">Close</button>
+        <button class="modal-confirm" onclick="closeMoodHistoryModal(); openMoodModal();">Log Today</button>
+      </div>
+    </div>
+  </div>
+
   <script>
   // ── STATE ──────────────────────────────────────────────────────
   let state = { currency: 'USD', theme: 'dark', settings: null, extras: [] };
@@ -1002,6 +1128,14 @@
       : `Updates in ${Math.max(0, 15 - now.getHours())}h ${60 - now.getMinutes()}m`;
     document.getElementById('updateStatus').textContent = statusText;
 
+    // Today's mood summary for the mood card
+    const todayEntry = getMoodEntry(todayKey());
+    const todayMoodSummary = todayEntry
+      ? { emoji: MOOD_OPTIONS.find(m => m.id === todayEntry.moodId)?.emoji || '📝',
+          label: todayEntry.moodId === 'other' ? (todayEntry.text || 'Logged') : (MOOD_OPTIONS.find(m => m.id === todayEntry.moodId)?.label || 'Logged'),
+          note: `Stress ${todayEntry.stress}/5 · Tap to see trends` }
+      : { emoji: '➕', label: 'Not logged yet', note: 'Tap to log or view trends' };
+
     container.innerHTML = `
       <!-- HERO -->
       <div class="hero-card fade-up d1">
@@ -1147,6 +1281,19 @@
         <div class="motive-icon">${motive.icon}</div>
         <div class="motive-text">"${motive.text}"</div>
         <div class="motive-tap">Tap for next quote</div>
+      </div>
+
+      <!-- MOOD TRACKER -->
+      <div class="mood-card fade-up d5" onclick="openMoodHistoryModal()">
+        <div class="mood-card-left">
+          <div class="mood-card-emoji">${todayMoodSummary.emoji}</div>
+          <div class="mood-card-texts">
+            <div class="mood-card-title">Today's Mood</div>
+            <div class="mood-card-val">${todayMoodSummary.label}</div>
+            <div class="mood-card-note">${todayMoodSummary.note}</div>
+          </div>
+        </div>
+        <div class="mood-card-arrow">📊</div>
       </div>
     `;
 
@@ -1496,6 +1643,208 @@
     animate();
   }
 
+  // ── MOOD TRACKER ──────────────────────────────────────────────
+  // Ship-life relevant moods: happy, excited, normal, exhausted, sad + custom "other"
+  const MOOD_OPTIONS = [
+    { id: 'happy',     emoji: '😄', label: 'Happy' },
+    { id: 'excited',   emoji: '🤩', label: 'Excited' },
+    { id: 'normal',    emoji: '😐', label: 'Normal' },
+    { id: 'exhausted', emoji: '😴', label: 'Exhausted' },
+    { id: 'sad',       emoji: '😔', label: 'Sad' },
+    { id: 'other',     emoji: '✍️', label: 'Other' },
+  ];
+  const MOOD_STORE_KEY = 'det_mood_log'; // { "YYYY-MM-DD": { moodId, text, stress, loggedAt } }
+  let selectedMoodId = null;
+  let selectedStress = 3;
+  let moodHistoryView = 'mood'; // 'mood' | 'stress'
+
+  function todayKey(d) {
+    const dt = d || new Date();
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+
+  function loadMoodLog() {
+    try { return JSON.parse(localStorage.getItem(MOOD_STORE_KEY) || '{}'); }
+    catch(e) { return {}; }
+  }
+  function saveMoodLog(log) { localStorage.setItem(MOOD_STORE_KEY, JSON.stringify(log)); }
+  function getMoodEntry(key) { return loadMoodLog()[key] || null; }
+
+  // ── Evening popup trigger: after 5 PM, once per day, only if not yet logged ──
+  function maybeShowEveningMoodPopup() {
+    const now = new Date();
+    if (now.getHours() < 17) return; // before 5 PM — don't show
+    const key = todayKey(now);
+    if (getMoodEntry(key)) return; // already logged today
+    setTimeout(() => openMoodModal(true), 900);
+  }
+
+  function renderMoodGrid() {
+    const grid = document.getElementById('moodGrid');
+    grid.innerHTML = MOOD_OPTIONS.map(m => `
+      <div class="mood-opt${selectedMoodId === m.id ? ' selected' : ''}" onclick="selectMood('${m.id}')">
+        <div class="mood-opt-emoji">${m.emoji}</div>
+        <div class="mood-opt-lbl">${m.label}</div>
+      </div>`).join('');
+  }
+
+  function renderStressDots() {
+    const wrap = document.getElementById('stressDots');
+    wrap.innerHTML = [1,2,3,4,5].map(n => `
+      <div class="stress-dot${selectedStress === n ? ' selected' : ''}" onclick="selectStress(${n})">${n}</div>
+    `).join('');
+  }
+
+  function selectMood(id) {
+    selectedMoodId = id;
+    renderMoodGrid();
+    const otherField = document.getElementById('moodOtherField');
+    otherField.classList.toggle('show', id === 'other');
+    if (id === 'other') setTimeout(() => document.getElementById('moodOtherText').focus(), 200);
+  }
+
+  function selectStress(n) {
+    selectedStress = n;
+    renderStressDots();
+  }
+
+  function openMoodModal(isAutoPopup) {
+    const key = todayKey();
+    const existing = getMoodEntry(key);
+    selectedMoodId = existing ? existing.moodId : null;
+    selectedStress = existing ? existing.stress : 3;
+    document.getElementById('moodModalSub').textContent = isAutoPopup
+      ? "It's evening — how did today go?"
+      : 'Log your mood for the day';
+    document.getElementById('moodOtherText').value = existing && existing.moodId === 'other' ? (existing.text || '') : '';
+    renderMoodGrid();
+    renderStressDots();
+    document.getElementById('moodOtherField').classList.toggle('show', selectedMoodId === 'other');
+    document.getElementById('moodModal').classList.add('open');
+  }
+  function closeMoodModal() { document.getElementById('moodModal').classList.remove('open'); }
+  function handleMoodBackdrop(e) { if (e.target === document.getElementById('moodModal')) closeMoodModal(); }
+
+  function saveMoodEntry() {
+    if (!selectedMoodId) { showToast('Pick a mood first', '⚠️'); return; }
+    const text = document.getElementById('moodOtherText').value.trim();
+    if (selectedMoodId === 'other' && !text) { showToast('Add a short note', '⚠️'); return; }
+    const log = loadMoodLog();
+    const key = todayKey();
+    log[key] = { moodId: selectedMoodId, text: selectedMoodId === 'other' ? text : '', stress: selectedStress, loggedAt: new Date().toISOString() };
+    saveMoodLog(log);
+    closeMoodModal();
+    showToast('Mood logged!', '🙂');
+    renderDash();
+  }
+
+  // ── Mood history graph ──────────────────────────────────────────
+  function openMoodHistoryModal() {
+    document.getElementById('moodHistoryModal').classList.add('open');
+    renderMoodChart();
+  }
+  function closeMoodHistoryModal() { document.getElementById('moodHistoryModal').classList.remove('open'); }
+  function handleMoodHistoryBackdrop(e) { if (e.target === document.getElementById('moodHistoryModal')) closeMoodHistoryModal(); }
+
+  function setMoodHistoryView(view) {
+    moodHistoryView = view;
+    document.getElementById('histBtnMood').classList.toggle('active', view === 'mood');
+    document.getElementById('histBtnStress').classList.toggle('active', view === 'stress');
+    renderMoodChart();
+  }
+
+  const MOOD_SCORE = { sad: 1, exhausted: 2, normal: 3, other: 3, happy: 4, excited: 5 };
+  const MOOD_COLORS = { sad: '#ff6b7a', exhausted: '#ffb347', normal: '#6c9cff', other: '#a78bff', happy: '#34d99e', excited: '#f5c842' };
+
+  function renderMoodChart() {
+    const container = document.getElementById('moodChartContainer');
+    const log = loadMoodLog();
+    const days = [];
+    const now = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const key = todayKey(d);
+      days.push({ date: d, key, entry: log[key] || null });
+    }
+    const loggedDays = days.filter(d => d.entry);
+    if (loggedDays.length === 0) {
+      container.innerHTML = `<div class="mood-chart-empty">No mood entries yet. Log today's mood to start seeing trends here. 📈</div>`;
+      return;
+    }
+
+    const width = Math.max(340, days.length * 14);
+    const height = 180;
+    const padTop = 16, padBottom = 24, padLeft = 8, padRight= 8;
+    const plotH = height - padTop - padBottom;
+    const stepX = (width - padLeft - padRight) / (days.length - 1);
+
+    function valueFor(entry) {
+      if (!entry) return null;
+      return moodHistoryView === 'mood' ? MOOD_SCORE[entry.moodId] || 3 : entry.stress;
+    }
+    const maxVal = 5, minVal = 1;
+    function yFor(v) { return padTop + (1 - (v - minVal) / (maxVal - minVal)) * plotH; }
+
+    // Build path across days that have entries, connecting consecutive logged points
+    let pathD = '';
+    let started = false;
+    const dots = [];
+    days.forEach((d, i) => {
+      const v = valueFor(d.entry);
+      const x = padLeft + i * stepX;
+      if (v !== null) {
+        const y = yFor(v);
+        pathD += (started ? ' L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);
+        started = true;
+        const color = moodHistoryView === 'mood' ? (MOOD_COLORS[d.entry.moodId] || '#6c9cff') : '#6c9cff';
+        dots.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg2)" stroke-width="1.5"/>`);
+      }
+    });
+
+    // Gridlines
+    let gridLines = '';
+    for (let v = minVal; v <= maxVal; v++) {
+      const y = yFor(v);
+      gridLines += `<line x1="${padLeft}" y1="${y}" x2="${width-padRight}" y2="${y}" stroke="var(--glass-border)" stroke-width="1"/>`;
+    }
+
+    // Date labels — every ~5 days
+    let labels = '';
+    days.forEach((d, i) => {
+      if (i % 5 === 0 || i === days.length - 1) {
+        const x = padLeft + i * stepX;
+        labels += `<text x="${x}" y="${height-6}" font-size="8" fill="var(--text-muted)" text-anchor="middle" font-family="var(--font-mono)">${d.date.getDate()}/${d.date.getMonth()+1}</text>`;
+      }
+    });
+
+    const gradientId = 'moodLineGrad';
+    container.innerHTML = `
+      <div class="mood-chart-wrap">
+        <svg class="mood-chart-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+          <defs>
+            <linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="var(--sapphire)"/>
+              <stop offset="100%" stop-color="var(--emerald)"/>
+            </linearGradient>
+          </defs>
+          ${gridLines}
+          <path d="${pathD}" fill="none" stroke="url(#${gradientId})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          ${dots.join('')}
+          ${labels}
+        </svg>
+      </div>
+      ${moodHistoryView === 'mood' ? `
+      <div class="mood-legend">
+        ${MOOD_OPTIONS.filter(m => m.id !== 'other').map(m => `
+          <div class="mood-legend-item"><span class="mood-legend-dot" style="background:${MOOD_COLORS[m.id]}"></span>${m.emoji} ${m.label}</div>
+        `).join('')}
+      </div>` : `
+      <div class="mood-legend">
+        <div class="mood-legend-item">1 = Low stress · 5 = High stress</div>
+      </div>`}
+    `;
+  }
+
   // ── INIT ───────────────────────────────────────────────────────
   function init() {
     loadState();
@@ -1510,6 +1859,9 @@
 
     // Confetti on page load — gentle, professional
     setTimeout(() => triggerCelebration(true), 400);
+
+    // Evening mood check-in popup (after 5 PM, once per day)
+    maybeShowEveningMoodPopup();
 
     // Fetch live rate in background
     fetchLiveRate();
