@@ -396,6 +396,24 @@
     }
     .biryani-next b { color: var(--gold); font-family: var(--font-mono); }
 
+    /* Sunday-morning state: it IS biryani day, but not credited yet */
+    .biryani-card.is-biryani-day { border-color: rgba(245,200,66,0.42); }
+    .biryani-today-banner {
+      margin-top: 13px; padding: 10px 14px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(245,200,66,0.16), rgba(255,138,91,0.10));
+      border: 1px solid rgba(245,200,66,0.34);
+      display: flex; align-items: center; gap: 9px;
+      position: relative; z-index: 1;
+      animation: biryani-glow 2.6s ease-in-out infinite;
+    }
+    .biryani-today-emoji { font-size: 19px; line-height: 1; animation: leg-wiggle 2.4s ease-in-out infinite; }
+    .biryani-today-text { font-size: 12px; color: var(--text-soft); font-weight: 600; }
+    .biryani-today-text b { color: var(--gold); font-weight: 900; }
+    @keyframes biryani-glow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(245,200,66,0.00); }
+      50%     { box-shadow: 0 0 18px 0 rgba(245,200,66,0.22); }
+    }
+
     /* ── CONTRACT JOURNEY CARD (Ship Tracker) ──────── */
     .journey-card {
       margin: 14px 20px 0; border-radius: var(--radius);
@@ -442,15 +460,21 @@
     [data-theme="light"] .ocean-wave-front { fill: rgba(10,158,105,0.24); }
 
     .ship-group { transition: transform 1.8s cubic-bezier(0.4,0,0.2,1); }
+    /* Smoke leaves the funnel mouth and trails BACKWARD along the ship's
+       wake — the vessel sails to the right, so relative airflow pushes the
+       plume up and to the LEFT (toward the stern), on a diagonal. */
     .ship-smoke {
-      opacity: 0; animation: smoke-puff 2.6s ease-out infinite;
+      opacity: 0;
+      transform-box: fill-box; transform-origin: center;
+      animation: smoke-puff 3s ease-out infinite;
     }
-    .ship-smoke.s2 { animation-delay: 0.9s; }
-    .ship-smoke.s3 { animation-delay: 1.8s; }
+    .ship-smoke.s2 { animation-delay: 1s; }
+    .ship-smoke.s3 { animation-delay: 2s; }
     @keyframes smoke-puff {
-      0%   { opacity: 0; transform: translate(0,0) scale(0.4); }
-      15%  { opacity: 0.6; }
-      100% { opacity: 0; transform: translate(-9px,-20px) scale(1.3); }
+      0%   { opacity: 0;    transform: translate(0, 0)      scale(0.35); }
+      12%  { opacity: 0.75; transform: translate(-2px,-4px) scale(0.6); }
+      55%  { opacity: 0.45; transform: translate(-11px,-14px) scale(1.05); }
+      100% { opacity: 0;    transform: translate(-22px,-26px) scale(1.6); }
     }
     .ship-propeller { transform-origin: 3px 33px; transform-box: view-box; animation: prop-spin 0.5s linear infinite; }
     @keyframes prop-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -482,6 +506,7 @@
       transition: all var(--transition);
     }
     .motive-card:hover { transform: translateY(-2px); border-color: rgba(108,156,255,0.3); }
+    .motive-icon, .motive-text { transition: opacity 0.13s ease; }
     .motive-card::before {
       content: ''; position: absolute; bottom: -24px; right: -24px;
       width: 110px; height: 110px; border-radius: 50%;
@@ -508,9 +533,33 @@
     }
     .mood-card:hover { transform: translateY(-2px); border-color: rgba(52,217,158,0.3); }
     .mood-card-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    /* Living emoji — a gentle breathe + tilt so the face reads as "alive"
+       rather than a flat glyph. Slow and small on purpose: it should catch
+       the eye without pulling focus from the numbers above it. */
     .mood-card-emoji {
       font-size: 34px; line-height: 1; flex-shrink: 0;
       filter: drop-shadow(0 3px 10px var(--emerald-glow));
+      transform-origin: 50% 65%;
+      animation: emoji-alive 3.4s ease-in-out infinite;
+    }
+    @keyframes emoji-alive {
+      0%, 100% { transform: scale(1)    rotate(0deg); }
+      22%      { transform: scale(1.11) rotate(-6deg); }
+      48%      { transform: scale(1.04) rotate(4deg); }
+      70%      { transform: scale(1.09) rotate(-2deg); }
+    }
+    .mood-card:hover .mood-card-emoji { animation-duration: 1.5s; }
+
+    /* Chart glyph nudges to hint it's tappable */
+    .mood-card-arrow { animation: arrow-nudge 2.8s ease-in-out infinite; }
+    @keyframes arrow-nudge {
+      0%, 100% { transform: translateX(0);   opacity: 0.75; }
+      50%      { transform: translateX(3px); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mood-card-emoji, .mood-card-arrow, .biryani-today-banner,
+      .biryani-today-emoji, .biryani-leg-emoji { animation: none; }
     }
     .mood-card-texts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .mood-card-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
@@ -747,11 +796,61 @@
     .fade-up { animation: fadeUp 0.55s ease both; }
     .d1{animation-delay:0.08s} .d2{animation-delay:0.16s} .d3{animation-delay:0.24s}
     .d4{animation-delay:0.32s} .d5{animation-delay:0.40s}
+
+    /* ── UPDATE TOAST ─────────────────────────── */
+    #updateToast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 120%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--glass-strong, rgba(20,24,40,0.95));
+      border: 1px solid var(--glass-border-strong, rgba(255,255,255,0.14));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+      color: var(--text, #f0f4ff);
+      font-family: var(--font-body, sans-serif);
+      font-size: 14px;
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+      max-width: calc(100vw - 32px);
+    }
+    #updateToast.show { transform: translate(-50%, 0); }
+    #updateToast button {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 10px;
+      padding: 8px 14px;
+      white-space: nowrap;
+    }
+    #updateToast .update-btn {
+      background: var(--gold, #f5c842);
+      color: #1a1200;
+    }
+    #updateToast .dismiss-btn {
+      background: transparent;
+      color: var(--text-muted, rgba(240,244,255,0.6));
+      padding: 8px 6px;
+    }
   </style>
 </head>
 <body>
   <canvas id="bgCanvas"></canvas>
   <canvas id="confettiCanvas"></canvas>
+
+  <div id="updateToast" role="status" aria-live="polite">
+    <span>A new version is available</span>
+    <button class="update-btn" id="updateNowBtn">Update</button>
+    <button class="dismiss-btn" id="updateDismissBtn" aria-label="Dismiss">✕</button>
+  </div>
 
   <div id="app">
     <!-- TOP BAR (not sticky) -->
@@ -1013,53 +1112,133 @@
     }
   }
 
+  // ── DATE HELPERS (calendar-day math, immune to DST / clock drift) ──
+  // Every day comparison is done on *calendar days*, never on raw millisecond
+  // subtraction — that was the source of the "days done sometimes lags by one"
+  // bug, because `now - 86400000` shifts by exactly 24h while calendar days
+  // can be 23h or 25h long across a DST boundary.
+  function dayStart(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function daysBetween(a, b) {
+    // whole calendar days from a → b (both normalised to local midnight)
+    return Math.round((dayStart(b) - dayStart(a)) / 86400000);
+  }
+  function parseLocalDate(str) {
+    // "YYYY-MM-DD" parsed as LOCAL midnight. `new Date("2026-01-05")` parses as
+    // UTC and silently shifts a day for users behind UTC — this avoids that.
+    if (!str) return new Date(NaN);
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
+  }
+
+  // Earnings credit cut-off — the hour at which "today" is considered earned.
+  const CREDIT_HOUR = 16; // 4:00 PM local
+
   // ── CALCULATIONS ───────────────────────────────────────────────
   function getEarnings() {
     const s = state.settings;
     if (!s) return null;
     const now = new Date();
-    const start = new Date(s.startDate);
+    const start = parseLocalDate(s.startDate);
     const dailyRate = s.monthlySalary / 30;
     // contractDays is the source of truth; fall back to legacy contractMonths*30 for old saved data
     const totalContractDays = s.contractDays || (s.contractMonths ? s.contractMonths * 30 : 0);
-    const cutoffToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 0, 0);
-    const effectiveNow = now >= cutoffToday ? now : new Date(now - 86400000);
-    let daysWorked = Math.floor((effectiveNow - start) / 86400000) + 1;
+    const cutoffToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), CREDIT_HOUR, 0, 0);
+    const todayUnlocked = now >= cutoffToday;
+
+    // Calendar-day index of today relative to start (start date itself = day 1).
+    // Before the 4 PM cut-off today has not been credited yet, so we count one
+    // fewer day — but we do it by subtracting from the *day index*, not by
+    // rewinding the clock 24h.
+    const todayIndex = daysBetween(start, now) + 1;   // 1-based; today included
+    let daysWorked = todayUnlocked ? todayIndex : todayIndex - 1;
     daysWorked = Math.max(0, Math.min(daysWorked, totalContractDays));
+
     const daysRemaining = Math.max(0, totalContractDays - daysWorked);
     const progressPct = totalContractDays > 0 ? (daysWorked / totalContractDays) * 100 : 0;
     const extraTotal = (state.extras || []).reduce((sum, e) => sum + e.amount, 0);
     const contractEarned = daysWorked * dailyRate;
     const totalEarned = contractEarned + extraTotal;
     const contractValue = dailyRate * totalContractDays;
-    const todayEarned = now >= cutoffToday ? dailyRate : 0;
-    const todayUnlocked = now >= cutoffToday;
+    const todayEarned = todayUnlocked ? dailyRate : 0;
     // End date: start date counts as day 1, so contract ends (totalContractDays - 1) days after start
     const endDate = new Date(start);
     endDate.setDate(endDate.getDate() + Math.max(totalContractDays - 1, 0));
 
-    // ── BIRYANI COUNTER: count Sundays completed since contract start ──
+    // ── BIRYANI COUNTER ──────────────────────────────────────────
+    // A Sunday is only *earned* once it is genuinely past — i.e. after that
+    // Sunday's own credit cut-off. Saturday must never count the Sunday that
+    // has not happened yet (the old code walked one day too far and did
+    // exactly that).
+    //
+    // Three distinct states:
+    //   • isBiryaniToday  → it IS Sunday, before cut-off → "Today is Biryani Day"
+    //   • earned          → Sundays strictly completed (credited)
+    //   • Sunday after cut-off → today's Sunday folds into `earned`
+    const contractStartDay = dayStart(start);
+    const lastCreditedDay  = new Date(contractStartDay);
+    lastCreditedDay.setDate(lastCreditedDay.getDate() + daysWorked - 1);
+
+    const isSundayToday   = now.getDay() === 0;
+    const contractRunning = daysWorked > 0 || (isSundayToday && todayIndex >= 1 && todayIndex <= totalContractDays);
+    // Biryani Day banner: it's Sunday, within contract, and not yet credited
+    const isBiryaniToday  = isSundayToday && !todayUnlocked
+                            && todayIndex >= 1 && todayIndex <= totalContractDays;
+
     let sundaysCompleted = 0;
-    {
-      const lastCountedDay = new Date(start.getTime() + daysWorked * 86400000);
-      // walk from start date to lastCountedDay (inclusive) counting Sundays
-      const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-      const endCursor = new Date(lastCountedDay.getFullYear(), lastCountedDay.getMonth(), lastCountedDay.getDate());
-      while (cursor <= endCursor) {
+    if (daysWorked > 0) {
+      const cursor = new Date(contractStartDay);
+      while (cursor <= lastCreditedDay) {
         if (cursor.getDay() === 0) sundaysCompleted++;
         cursor.setDate(cursor.getDate() + 1);
       }
-      // find next upcoming Sunday date (for display)
-      var nextSundayCursor = new Date(endCursor);
-      nextSundayCursor.setDate(nextSundayCursor.getDate() + 1);
-      while (nextSundayCursor.getDay() !== 0) nextSundayCursor.setDate(nextSundayCursor.getDate() + 1);
     }
-    const nextBiryaniDate = typeof nextSundayCursor !== 'undefined' ? nextSundayCursor : null;
+
+    // Next upcoming Sunday, strictly after the last one already counted.
+    // If today is Sunday and not yet credited, "next" is today itself.
+    let nextBiryaniDate;
+    if (isBiryaniToday) {
+      nextBiryaniDate = dayStart(now);
+    } else {
+      const c = dayStart(now);
+      do { c.setDate(c.getDate() + 1); } while (c.getDay() !== 0);
+      nextBiryaniDate = c;
+    }
 
     return { dailyRate, totalEarned, contractEarned, extraTotal, contractValue,
              daysWorked, daysRemaining, totalDays: totalContractDays, progressPct,
              todayEarned, todayUnlocked, cutoffToday, now, startDate: start, endDate,
-             sundaysCompleted, nextBiryaniDate };
+             sundaysCompleted, nextBiryaniDate, isBiryaniToday, isSundayToday };
+  }
+
+  // ── LIVE EARNINGS TICKER ───────────────────────────────────────
+  // The user works a ~10-hour day, so salary should *feel* like it accrues
+  // across the working window rather than across all 24 hours. We spread one
+  // day's pay over WORK_START → WORK_END; outside that window the amount is
+  // pinned to 0% (before) or 100% (after) of the day's rate.
+  //
+  // This only ever animates the portion of TODAY that has already elapsed —
+  // it never invents money beyond one day's rate, so the number the user sees
+  // in the evening is exactly the correct credited total.
+  const WORK_START_HOUR = 8;   // 08:00
+  const WORK_END_HOUR   = 18;  // 18:00  → 10-hour working day
+
+  // Fraction (0..1) of today's pay accrued at this instant.
+  function workDayFraction(now) {
+    const h = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
+              + now.getMilliseconds()/3600000;
+    if (h <= WORK_START_HOUR) return 0;
+    if (h >= WORK_END_HOUR)   return 1;
+    return (h - WORK_START_HOUR) / (WORK_END_HOUR - WORK_START_HOUR);
+  }
+
+  // Total earned including the live in-progress accrual for the current day.
+  // Once today is credited (past 4 PM) `daysWorked` already contains it, so we
+  // must not add the partial day a second time.
+  function getLiveTotal(e) {
+    if (!e) return 0;
+    if (e.todayUnlocked) return e.totalEarned;              // already banked
+    if (e.daysWorked >= e.totalDays) return e.totalEarned;  // contract finished
+    return e.totalEarned + e.dailyRate * workDayFraction(new Date());
   }
 
   // ── FORMATTERS ───────────────────────────────────────────────
@@ -1098,6 +1277,7 @@
 
   // ── RENDER DASHBOARD ───────────────────────────────────────────
   function renderDash() {
+    stopLiveTicker();   // any previous ticker points at DOM we're about to replace
     const e = getEarnings();
     const container = document.getElementById('dashContent');
     updateRateChip();
@@ -1122,10 +1302,17 @@
 
     // Status text
     const now = new Date();
-    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 0, 0);
-    let statusText = now >= cutoff
-      ? '✓ Updated today'
-      : `Updates in ${Math.max(0, 15 - now.getHours())}h ${60 - now.getMinutes()}m`;
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate(), CREDIT_HOUR, 0, 0);
+    let statusText;
+    if (now >= cutoff) {
+      statusText = '✓ Updated today';
+    } else {
+      // Derive from the real remaining milliseconds — the old formula mixed
+      // independent hour/minute expressions and could render "3h 60m".
+      const mins = Math.ceil((cutoff - now) / 60000);
+      const h = Math.floor(mins / 60), m = mins % 60;
+      statusText = h > 0 ? `Updates in ${h}h ${m}m` : `Updates in ${m}m`;
+    }
     document.getElementById('updateStatus').textContent = statusText;
 
     // Today's mood summary for the mood card
@@ -1157,7 +1344,7 @@
             <div class="hero-today-texts">
               <div class="hero-today-label">Today's Earning</div>
               <div class="hero-today-amt" id="todayAmt">₹0</div>
-              <div class="hero-today-note">${e.todayUnlocked ? 'Credited at 5:00 PM' : 'Credits at 4:00 PM today'}</div>
+              <div class="hero-today-note">${e.todayUnlocked ? 'Credited at 4:00 PM' : 'Credits at 4:00 PM today'}</div>
             </div>
           </div>
           <div class="today-badge ${e.todayUnlocked ? '' : 'pending'}">${e.todayUnlocked ? '✓ PAID' : 'PENDING'}</div>
@@ -1184,7 +1371,7 @@
       </div>
 
       <!-- BIRYANI COUNTER CARD -->
-      <div class="biryani-card fade-up d3">
+      <div class="biryani-card fade-up d3${e.isBiryaniToday ? ' is-biryani-day' : ''}">
         <div class="biryani-card-header">
           <div class="biryani-card-title">Biryani Counter</div>
           <div class="biryani-card-sub">Every Sunday 🍛</div>
@@ -1200,11 +1387,16 @@
           </div>
         </div>
         <div class="biryani-plates">
-          ${Array.from({length: Math.max(e.sundaysCompleted, 1)}, (_, i) =>
+          ${Array.from({length: Math.max(e.sundaysCompleted + (e.isBiryaniToday ? 1 : 0), 1)}, (_, i) =>
             `<span class="biryani-plate${i < e.sundaysCompleted ? '' : ' pending'}">🍛</span>`
           ).join('')}
         </div>
-        ${e.nextBiryaniDate ? `<div class="biryani-next">Next biryani: <b>${e.nextBiryaniDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</b></div>` : ''}
+        ${e.isBiryaniToday
+          ? `<div class="biryani-today-banner">
+               <span class="biryani-today-emoji">🍛</span>
+               <span class="biryani-today-text">Today is <b>Biryani Day</b> — enjoy it!</span>
+             </div>`
+          : (e.nextBiryaniDate ? `<div class="biryani-next">Next biryani: <b>${e.nextBiryaniDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</b></div>` : '')}
       </div>
 
       <!-- CONTRACT JOURNEY CARD -->
@@ -1240,10 +1432,11 @@
               <!-- funnel -->
               <rect x="26" y="4" width="8" height="12" rx="1.5" fill="#3a4257"/>
               <rect x="26" y="4" width="8" height="3" rx="1.5" fill="var(--gold)"/>
-              <!-- smoke — emitted from funnel top, drifts backward (toward stern, left) and up -->
-              <circle class="ship-smoke s1" cx="30" cy="3" r="3.2" fill="rgba(225,231,242,0.85)"/>
-              <circle class="ship-smoke s2" cx="30" cy="3" r="3.2" fill="rgba(225,231,242,0.85)"/>
-              <circle class="ship-smoke s3" cx="30" cy="3" r="3.2" fill="rgba(225,231,242,0.85)"/>
+              <!-- smoke — rises from the funnel MOUTH (top edge y=4) and
+                   trails back toward the stern (leftward diagonal) -->
+              <circle class="ship-smoke s1" cx="30" cy="1.5" r="3" fill="rgba(225,231,242,0.8)"/>
+              <circle class="ship-smoke s2" cx="30" cy="1.5" r="3" fill="rgba(225,231,242,0.8)"/>
+              <circle class="ship-smoke s3" cx="30" cy="1.5" r="3" fill="rgba(225,231,242,0.8)"/>
               <!-- hull -->
               <path d="M0,26 L60,26 L54,38 L6,38 Z" fill="var(--sapphire)"/>
               <path d="M4,30 L56,30 L52,34 L8,34 Z" fill="rgba(255,255,255,0.14)"/>
@@ -1299,7 +1492,7 @@
 
     // Animate numbers after paint
     setTimeout(() => {
-      animateCounter(document.getElementById('heroAmt'),  e.totalEarned,  fmtBig, 1400);
+      animateCounter(document.getElementById('heroAmt'),  getLiveTotal(e), fmtBig, 1400, startLiveTicker);
       animateCounter(document.getElementById('todayAmt'), e.todayEarned,  fmtBig, 1000);
       animateCounter(document.getElementById('tabDay'),   e.dailyRate,    fmtTab, 900);
       animateCounter(document.getElementById('tabWeek'),  weeklyRate,     fmtTab, 1000);
@@ -1324,17 +1517,48 @@
   }
 
   // ── COUNTER ANIMATION ──────────────────────────────────────────
-  function animateCounter(el, target, formatter, duration) {
-    if (!el) return;
+  function animateCounter(el, target, formatter, duration, onDone) {
+    if (!el) { if (onDone) onDone(); return; }
     const t0 = performance.now();
     function tick(t) {
       const p = Math.min((t - t0) / duration, 1);
       const e = 1 - Math.pow(1 - p, 4);
       el.textContent = formatter(target * e);
       if (p < 1) requestAnimationFrame(tick);
-      else el.textContent = formatter(target);
+      else { el.textContent = formatter(target); if (onDone) onDone(); }
     }
     requestAnimationFrame(tick);
+  }
+
+  // ── LIVE TOTAL TICKER ──────────────────────────────────────────
+  // After the count-up animation settles, the hero figure keeps creeping
+  // upward in real time so the user can *see* their money accruing. Updates
+  // every 2s — fast enough to feel alive, slow enough not to be distracting.
+  //
+  // The value shown is always the honest one: it is derived from the clock,
+  // so at any instant it equals exactly what has been earned so far. It stops
+  // on its own once today is credited or the contract is complete.
+  let liveTickerId = null;
+  function stopLiveTicker() {
+    if (liveTickerId) { clearInterval(liveTickerId); liveTickerId = null; }
+  }
+  function startLiveTicker() {
+    stopLiveTicker();
+    const el = document.getElementById('heroAmt');
+    if (!el) return;
+    const e = getEarnings();
+    if (!e || e.todayUnlocked || e.daysWorked >= e.totalDays) return; // nothing left to accrue
+
+    liveTickerId = setInterval(() => {
+      const cur = document.getElementById('heroAmt');
+      if (!cur) { stopLiveTicker(); return; }   // dashboard was re-rendered
+      const ev = getEarnings();
+      if (!ev) { stopLiveTicker(); return; }
+      // Crossed the 4 PM credit boundary while ticking — re-render so the
+      // "PAID" badge, day counters and biryani state all update together.
+      if (ev.todayUnlocked) { stopLiveTicker(); renderDash(); return; }
+      cur.textContent = fmtBig(getLiveTotal(ev));
+    }, 2000);
   }
 
   // ── SETTINGS ───────────────────────────────────────────────────
@@ -1344,6 +1568,8 @@
     document.getElementById('startDate').value       = s.startDate      || '';
     document.getElementById('contractDays').value    = s.contractDays   || '';
     document.getElementById('exchangeRate').value    = s.exchangeRate   || 84;
+    // Baseline for auto-save — opening the page must not look like an edit
+    lastSavedSnapshot = settingsSnapshot();
     renderExtrasList();
     // Update badge in settings
     const badge = document.getElementById('rateSourceBadge');
@@ -1362,18 +1588,59 @@
     }
   }
 
-  function saveSettings() {
+  // `silent` = triggered by auto-save on blur. It never nags with validation
+  // toasts (the user may simply be mid-edit) and it does not navigate away
+  // unless the settings are actually complete and valid.
+  function saveSettings(silent) {
     const salary = parseFloat(document.getElementById('monthlySalary').value);
     const startDate = document.getElementById('startDate').value;
     const days = parseInt(document.getElementById('contractDays').value);
     const rate = parseFloat(document.getElementById('exchangeRate').value) || 84;
-    if (!salary || salary <= 0) { showToast('Enter a valid monthly salary', '⚠️'); return; }
-    if (!startDate) { showToast('Select a contract start date', '⚠️'); return; }
-    if (!days || days <= 0) { showToast('Enter contract duration', '⚠️'); return; }
+
+    const valid = salary > 0 && !!startDate && days > 0;
+    if (!valid) {
+      if (silent) return false;
+      if (!salary || salary <= 0) { showToast('Enter a valid monthly salary', '⚠️'); return false; }
+      if (!startDate) { showToast('Select a contract start date', '⚠️'); return false; }
+      if (!days || days <= 0) { showToast('Enter contract duration', '⚠️'); return false; }
+    }
+
     state.settings = { monthlySalary: salary, startDate, contractDays: days, exchangeRate: rate };
     saveState();
     showToast('Settings saved!', '✓');
-    setTimeout(() => showPage('dash'), 700);
+    setTimeout(() => showPage('dash'), silent ? 450 : 700);
+    return true;
+  }
+
+  // ── AUTO-SAVE ON BLUR ──────────────────────────────────────────
+  // The moment the user finishes editing a field — taps outside, dismisses the
+  // keyboard, or picks a date — the change is committed and we return to the
+  // dashboard. `lastSavedSnapshot` guards against re-saving (and re-navigating)
+  // when a field is blurred without having actually changed.
+  let lastSavedSnapshot = null;
+  function settingsSnapshot() {
+    return [
+      document.getElementById('monthlySalary').value,
+      document.getElementById('startDate').value,
+      document.getElementById('contractDays').value,
+      document.getElementById('exchangeRate').value,
+    ].join('|');
+  }
+  function autoSaveSettings() {
+    const snap = settingsSnapshot();
+    if (snap === lastSavedSnapshot) return;   // nothing actually changed
+    if (saveSettings(true)) lastSavedSnapshot = snap;
+  }
+  function initSettingsAutoSave() {
+    ['monthlySalary','startDate','contractDays','exchangeRate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('blur', autoSaveSettings);
+      // Enter / Done on the mobile keyboard should commit immediately
+      el.addEventListener('keydown', ev => { if (ev.key === 'Enter') el.blur(); });
+      // <input type="date"> fires `change` on picker selection without blur
+      if (el.type === 'date') el.addEventListener('change', autoSaveSettings);
+    });
   }
 
   function renderExtrasList() {
@@ -1431,7 +1698,7 @@
     document.getElementById('navDash').classList.toggle('active', page === 'dash');
     document.getElementById('navSettings').classList.toggle('active', page === 'settings');
     if (page === 'dash') renderDash();
-    if (page === 'settings') populateSettings();
+    if (page === 'settings') { stopLiveTicker(); populateSettings(); }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -1468,7 +1735,19 @@
 
   function nextMotive() {
     currentMotiveIdx = (currentMotiveIdx + 1) % MOTIVES.length;
-    renderDash();
+    // Swap just the quote in place. A full renderDash() here would restart
+    // every count-up animation and kill the live ticker for a cosmetic change.
+    const card = document.querySelector('.motive-card');
+    if (!card) { renderDash(); return; }
+    const m = MOTIVES[currentMotiveIdx];
+    const icon = card.querySelector('.motive-icon');
+    const text = card.querySelector('.motive-text');
+    card.style.opacity = '0.35';
+    setTimeout(() => {
+      if (icon) icon.textContent = m.icon;
+      if (text) text.textContent = `"${m.text}"`;
+      card.style.opacity = '1';
+    }, 130);
   }
 
   // ── TOAST ──────────────────────────────────────────────────────
@@ -1645,9 +1924,11 @@
 
   // ── MOOD TRACKER ──────────────────────────────────────────────
   // Ship-life relevant moods: happy, excited, normal, exhausted, sad + custom "other"
+  // Ordered best → worst. This same order drives the mood-history Y axis:
+  // Excited sits at the top of the chart, Sad at the bottom.
   const MOOD_OPTIONS = [
-    { id: 'happy',     emoji: '😄', label: 'Happy' },
     { id: 'excited',   emoji: '🤩', label: 'Excited' },
+    { id: 'happy',     emoji: '😄', label: 'Happy' },
     { id: 'normal',    emoji: '😐', label: 'Normal' },
     { id: 'exhausted', emoji: '😴', label: 'Exhausted' },
     { id: 'sad',       emoji: '😔', label: 'Sad' },
@@ -1756,6 +2037,57 @@
   const MOOD_SCORE = { sad: 1, exhausted: 2, normal: 3, other: 3, happy: 4, excited: 5 };
   const MOOD_COLORS = { sad: '#ff6b7a', exhausted: '#ffb347', normal: '#6c9cff', other: '#a78bff', happy: '#34d99e', excited: '#f5c842' };
 
+  // ── SMOOTH CURVE ────────────────────────────────────────────────
+  // Cubic Bézier through every point, with tangents chosen the *monotone*
+  // way: at any local maximum or minimum the tangent is flattened to zero.
+  // That gives the rounded hilltop/valley look at the peaks while guaranteeing
+  // the curve never overshoots past a data point — a plain Catmull-Rom spline
+  // would bulge above "Excited" or below "Sad", showing moods that were never
+  // logged.
+  function smoothPath(pts) {
+    if (pts.length === 0) return '';
+    if (pts.length === 1) return `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+    if (pts.length === 2) {
+      return `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)} L${pts[1].x.toFixed(1)},${pts[1].y.toFixed(1)}`;
+    }
+
+    // Slope of each segment
+    const seg = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const dx = pts[i+1].x - pts[i].x;
+      seg.push(dx === 0 ? 0 : (pts[i+1].y - pts[i].y) / dx);
+    }
+
+    // Tangent at each point — zero wherever the direction reverses (a peak)
+    const tan = new Array(pts.length);
+    tan[0] = seg[0];
+    tan[pts.length - 1] = seg[seg.length - 1];
+    for (let i = 1; i < pts.length - 1; i++) {
+      tan[i] = (seg[i-1] * seg[i] <= 0) ? 0 : (seg[i-1] + seg[i]) / 2;
+    }
+
+    // Fritsch–Carlson limiter keeps each tangent inside the monotone envelope
+    for (let i = 0; i < seg.length; i++) {
+      if (seg[i] === 0) { tan[i] = 0; tan[i+1] = 0; continue; }
+      const a = tan[i] / seg[i], b = tan[i+1] / seg[i];
+      const s = a*a + b*b;
+      if (s > 9) {
+        const f = 3 / Math.sqrt(s);
+        tan[i]   = f * a * seg[i];
+        tan[i+1] = f * b * seg[i];
+      }
+    }
+
+    let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const dx = pts[i+1].x - pts[i].x;
+      const c1x = pts[i].x + dx / 3,   c1y = pts[i].y   + tan[i]   * dx / 3;
+      const c2x = pts[i+1].x - dx / 3, c2y = pts[i+1].y - tan[i+1] * dx / 3;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${pts[i+1].x.toFixed(1)},${pts[i+1].y.toFixed(1)}`;
+    }
+    return d;
+  }
+
   function renderMoodChart() {
     const container = document.getElementById('moodChartContainer');
     const log = loadMoodLog();
@@ -1785,21 +2117,19 @@
     const maxVal = 5, minVal = 1;
     function yFor(v) { return padTop + (1 - (v - minVal) / (maxVal - minVal)) * plotH; }
 
-    // Build path across days that have entries, connecting consecutive logged points
-    let pathD = '';
-    let started = false;
+    // Collect the logged points, then draw them as a SMOOTH curve.
+    const pts = [];
     const dots = [];
     days.forEach((d, i) => {
       const v = valueFor(d.entry);
+      if (v === null) return;
       const x = padLeft + i * stepX;
-      if (v !== null) {
-        const y = yFor(v);
-        pathD += (started ? ' L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);
-        started = true;
-        const color = moodHistoryView === 'mood' ? (MOOD_COLORS[d.entry.moodId] || '#6c9cff') : '#6c9cff';
-        dots.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg2)" stroke-width="1.5"/>`);
-      }
+      const y = yFor(v);
+      pts.push({ x, y });
+      const color = moodHistoryView === 'mood' ? (MOOD_COLORS[d.entry.moodId] || '#6c9cff') : '#6c9cff';
+      dots.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg2)" stroke-width="1.5"/>`);
     });
+    const pathD = smoothPath(pts);
 
     // Gridlines
     let gridLines = '';
@@ -1866,16 +2196,89 @@
     // Fetch live rate in background
     fetchLiveRate();
 
-    // Auto-refresh at 4 PM boundary
-    setInterval(() => {
-      const n = new Date();
-      if (n.getHours() === 16 && n.getMinutes() === 0 && n.getSeconds() < 8) {
-        renderDash(); triggerCelebration(false);
+    // Wire up settings auto-save (fields exist from page load)
+    initSettingsAutoSave();
+
+    // ── Day/credit boundary watcher ──────────────────────────────
+    // Instead of matching an exact clock instant (which a sleeping phone or a
+    // backgrounded tab will simply miss), we remember the last state we
+    // rendered and react whenever it actually changes. This is what keeps
+    // "Days Done" and the biryani count honest across midnight, across the
+    // 4 PM credit, and after the device wakes from sleep.
+    function boundaryKey() {
+      const e = getEarnings();
+      if (!e) return 'none';
+      return `${todayKey()}|${e.todayUnlocked ? 1 : 0}|${e.daysWorked}|${e.sundaysCompleted}|${e.isBiryaniToday ? 1 : 0}`;
+    }
+    let lastBoundary = boundaryKey();
+    function checkBoundary() {
+      const k = boundaryKey();
+      if (k === lastBoundary) return;
+      const prev = lastBoundary;
+      lastBoundary = k;
+      if (document.getElementById('dashPage').classList.contains('active')) {
+        renderDash();
+        // Celebrate only on the credit flip (0 → 1), not on every change
+        if (prev.split('|')[1] === '0' && k.split('|')[1] === '1') triggerCelebration(false);
       }
-    }, 5000);
+    }
+    setInterval(checkBoundary, 5000);
+    // Re-check the instant the app comes back to the foreground
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) { updateGreeting(); checkBoundary(); }
+    });
   }
 
   init();
+
+  // ── PWA UPDATE DETECTION ─────────────────────────
+  (function setupUpdateFlow() {
+    if (!('serviceWorker' in navigator)) return;
+
+    const toast = document.getElementById('updateToast');
+    const updateBtn = document.getElementById('updateNowBtn');
+    const dismissBtn = document.getElementById('updateDismissBtn');
+    let waitingWorker = null;
+    let refreshed = false;
+
+    function showToast(worker) {
+      waitingWorker = worker;
+      toast.classList.add('show');
+    }
+
+    updateBtn.addEventListener('click', () => {
+      if (waitingWorker) waitingWorker.postMessage('SKIP_WAITING');
+    });
+    dismissBtn.addEventListener('click', () => {
+      toast.classList.remove('show');
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshed) return;
+      refreshed = true;
+      window.location.reload();
+    });
+
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      if (reg.waiting) showToast(reg.waiting);
+
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showToast(newWorker);
+          }
+        });
+      });
+
+      // Periodically check for a new version while the app is open
+      setInterval(() => reg.update(), 60 * 1000);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reg.update();
+      });
+    }).catch((err) => console.error('SW registration failed:', err));
+  })();
   </script>
 </body>
 </html>
