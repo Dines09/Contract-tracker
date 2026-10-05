@@ -249,6 +249,43 @@
       background: rgba(245,200,66,0.09); border-color: rgba(245,200,66,0.28); color: var(--gold);
     }
 
+    /* ── ODOMETER (rolling digits, game-score style) ── */
+    .hero-amount-row { display: flex; align-items: flex-end; gap: 8px; position: relative; }
+    .odo { display: inline-flex; align-items: flex-end; font-variant-numeric: tabular-nums; }
+    .hero-amount.odo, [data-theme="light"] .hero-amount.odo {
+      background: none; -webkit-text-fill-color: currentColor; color: var(--text);
+      /* glow applied to the whole number: a text-shadow was clipped by each
+         digit's window and showed up as faint rectangles behind the digits */
+      text-shadow: none;
+      filter: drop-shadow(0 2px 12px var(--gold-glow));
+    }
+    .odo-d { display: inline-block; height: 1.12em; overflow: hidden; }
+    .odo-s { display: flex; flex-direction: column; }
+    .odo-s > span { height: 1.12em; line-height: 1.12em; text-align: center; }
+    .odo-c { display: inline-block; height: 1.12em; line-height: 1.12em; }
+    .odo-frac { font-size: 0.5em; color: var(--gold); margin-bottom: 0.3em; }
+    .hero-today-amt.odo .odo-frac { font-size: 0.62em; color: var(--emerald); opacity: 0.75; margin-bottom: 0.18em; }
+    .hero-delta {
+      position: absolute; right: 0; top: -8px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--emerald);
+      background: var(--emerald-glow); border: 1px solid rgba(52,217,158,0.3);
+      padding: 2px 8px; border-radius: 20px; opacity: 0; pointer-events: none;
+    }
+    .hero-delta.pop { animation: delta-pop 2.2s cubic-bezier(.2,.8,.2,1) forwards; }
+    @keyframes delta-pop {
+      0%   { opacity: 0; transform: translateY(10px) scale(0.85); }
+      18%  { opacity: 1; transform: translateY(0) scale(1.06); }
+      30%  { transform: translateY(0) scale(1); }
+      75%  { opacity: 1; transform: translateY(-6px); }
+      100% { opacity: 0; transform: translateY(-16px); }
+    }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle;
+      font-size: 8.5px; letter-spacing: 1.5px; color: var(--emerald);
+      padding: 2px 7px; border-radius: 20px; background: var(--emerald-glow);
+    }
+    .live-pill i { width: 5px; height: 5px; border-radius: 50%; background: var(--emerald); animation: pulse-dot 1.4s infinite; }
+
     /* ── RATE TABS: Day / Week / Month ─────────────── */
     .rate-tabs {
       margin: 14px 20px 0;
@@ -344,7 +381,9 @@
     /* ── BIRYANI COUNTER CARD ──────────────────────── */
     .biryani-card {
       margin: 14px 20px 0; border-radius: var(--radius);
-      background: linear-gradient(145deg, rgba(245,200,66,0.10) 0%, rgba(255,107,53,0.06) 100%);
+      background:
+        radial-gradient(90% 80% at 0% 0%, rgba(255,138,91,0.10), transparent 60%),
+        linear-gradient(145deg, rgba(245,200,66,0.10) 0%, rgba(255,107,53,0.06) 100%);
       border: 1px solid rgba(245,200,66,0.18);
       padding: 22px;
       position: relative; overflow: hidden;
@@ -365,15 +404,53 @@
     .biryani-card-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
     .biryani-card-sub { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--gold); }
     .biryani-main { display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
-    .biryani-leg-emoji {
-      font-size: 54px; flex-shrink: 0; line-height: 1;
-      filter: drop-shadow(0 4px 14px rgba(245,200,66,0.35));
+
+    /* The dish: plate + leg piece, with steam on Sunday */
+    .biryani-dish { position: relative; width: 70px; height: 64px; flex-shrink: 0; }
+    .biryani-plate-big {
+      position: absolute; left: 0; bottom: 0; font-size: 52px; line-height: 1;
+      filter: drop-shadow(0 6px 14px rgba(245,200,66,0.35));
+    }
+    .biryani-leg {
+      position: absolute; right: -2px; top: 4px; font-size: 26px; line-height: 1;
+      transform-origin: 30% 80%;
       animation: leg-wiggle 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
     }
     @keyframes leg-wiggle {
-      0%, 100% { transform: rotate(-4deg); }
-      50% { transform: rotate(4deg); }
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
     }
+    /* Sunday: the leg piece "cooks" — little sizzling hops and turns */
+    .is-biryani-day .biryani-leg { animation: leg-sizzle 1.9s ease-in-out infinite; }
+    @keyframes leg-sizzle {
+      0%   { transform: translateY(0) rotate(-6deg); }
+      15%  { transform: translateY(-3px) rotate(4deg); }
+      30%  { transform: translateY(0) rotate(-2deg); }
+      45%  { transform: translateY(-1.5px) rotate(7deg); }
+      60%  { transform: translateY(0) rotate(0deg); }
+      80%  { transform: translateY(-2px) rotate(-4deg); }
+      100% { transform: translateY(0) rotate(-6deg); }
+    }
+    .biryani-steam {
+      position: absolute; left: 4px; top: -30px; width: 52px; height: 40px; overflow: visible;
+      pointer-events: none;
+    }
+    .biryani-steam .wisp {
+      fill: none; stroke: rgba(255,255,255,0.55); stroke-width: 2.2; stroke-linecap: round;
+      stroke-dasharray: 60; stroke-dashoffset: 60; opacity: 0;
+      animation: steam-rise 3.4s ease-in-out infinite;
+    }
+    [data-theme="light"] .biryani-steam .wisp { stroke: rgba(120,110,90,0.35); }
+    .biryani-steam .w2 { animation-delay: 1.1s; }
+    .biryani-steam .w3 { animation-delay: 2.2s; }
+    @keyframes steam-rise {
+      0%   { stroke-dashoffset: 60;  opacity: 0;   transform: translateY(8px); }
+      25%  { opacity: 0.85; }
+      70%  { opacity: 0.4; }
+      100% { stroke-dashoffset: -40; opacity: 0;   transform: translateY(-10px); }
+    }
+
     .biryani-count-block { flex: 1; }
     .biryani-count-row { display: flex; align-items: baseline; gap: 8px; }
     .biryani-count-num {
@@ -384,19 +461,46 @@
     }
     .biryani-count-label { font-size: 13px; font-weight: 700; color: var(--text-soft); }
     .biryani-count-caption { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Week strip: Mon → Sun, today highlighted, Sunday is the plate */
+    .biryani-week {
+      display: flex; justify-content: space-between; gap: 4px; margin-top: 16px;
+      position: relative; z-index: 1;
+    }
+    .bw-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bw-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 13px;
+      background: var(--glass); border: 1.5px solid var(--glass-border-strong);
+      transition: all 0.3s;
+    }
+    .bw-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted); }
+    .bw-day.past .bw-dot { background: rgba(245,200,66,0.22); border-color: rgba(245,200,66,0.35); }
+    .bw-day.today .bw-dot {
+      border-color: var(--gold); background: rgba(245,200,66,0.32);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+    .bw-day.today .bw-lbl { color: var(--gold); }
+    .bw-day.sun .bw-dot { width: 26px; height: 26px; margin-top: -2px; border-color: rgba(245,200,66,0.5); }
+    .bw-day.sun.today .bw-dot { animation: biryani-glow 2s ease-in-out infinite; }
+
     .biryani-plates {
-      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px;
       position: relative; z-index: 1;
     }
     .biryani-plate { font-size: 18px; line-height: 1; opacity: 0.95; }
     .biryani-plate.pending { opacity: 0.18; filter: grayscale(1); }
+    .biryani-plate-more {
+      font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--gold);
+      padding: 2px 7px; border-radius: 10px; background: var(--gold-glow);
+    }
     .biryani-next {
       margin-top: 12px; font-size: 11px; color: var(--text-muted);
       position: relative; z-index: 1;
     }
     .biryani-next b { color: var(--gold); font-family: var(--font-mono); }
 
-    /* Sunday-morning state: it IS biryani day, but not credited yet */
+    /* Sunday state */
     .biryani-card.is-biryani-day { border-color: rgba(245,200,66,0.42); }
     .biryani-today-banner {
       margin-top: 13px; padding: 10px 14px; border-radius: 14px;
@@ -406,18 +510,30 @@
       position: relative; z-index: 1;
       animation: biryani-glow 2.6s ease-in-out infinite;
     }
+    .biryani-today-banner.served { background: linear-gradient(135deg, rgba(52,217,158,0.14), rgba(245,200,66,0.10)); border-color: rgba(52,217,158,0.32); }
     .biryani-today-emoji { font-size: 19px; line-height: 1; animation: leg-wiggle 2.4s ease-in-out infinite; }
     .biryani-today-text { font-size: 12px; color: var(--text-soft); font-weight: 600; }
     .biryani-today-text b { color: var(--gold); font-weight: 900; }
+    .cook-dots i { font-style: normal; font-weight: 900; color: var(--gold); animation: cook-dot 1.4s infinite; opacity: 0; }
+    .cook-dots i:nth-child(2) { animation-delay: 0.2s; }
+    .cook-dots i:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes cook-dot { 0%, 20% { opacity: 0; } 40%, 80% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes biryani-glow {
       0%,100% { box-shadow: 0 0 0 0 rgba(245,200,66,0.00); }
       50%     { box-shadow: 0 0 18px 0 rgba(245,200,66,0.22); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .biryani-leg, .biryani-steam .wisp, .cook-dots i, .bw-day.sun.today .bw-dot { animation: none; }
+      .biryani-steam .wisp { opacity: 0.5; stroke-dashoffset: 0; }
     }
 
     /* ── CONTRACT JOURNEY CARD (Ship Tracker) ──────── */
     .journey-card {
       margin: 14px 20px 0; border-radius: var(--radius);
       border: 1px solid rgba(108,156,255,0.18);
+      /* One continuous background for the stats AND the sea, so there is no
+         seam where the two sections meet. */
+      background: linear-gradient(180deg, rgba(108,156,255,0.10) 0%, rgba(52,217,158,0.05) 45%, rgba(108,156,255,0.06) 100%);
       position: relative; overflow: hidden;
       backdrop-filter: blur(28px) saturate(1.7);
       -webkit-backdrop-filter: blur(28px) saturate(1.7);
@@ -426,7 +542,7 @@
     .journey-card-top {
       padding: 22px 22px 14px;
       position: relative; z-index: 2;
-      background: linear-gradient(145deg, rgba(108,156,255,0.10) 0%, rgba(52,217,158,0.06) 100%);
+      background: transparent;
     }
     .journey-card-header {
       display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
@@ -451,33 +567,63 @@
     .ocean-wrap {
       position: relative; width: 100%; height: 128px;
       overflow: hidden;
-      background: linear-gradient(180deg, rgba(108,156,255,0.08) 0%, rgba(52,217,158,0.10) 100%);
+      --sea-far-top: rgba(108,156,255,0.30);  --sea-far-bot: rgba(70,110,220,0.18);
+      --sea-mid-top: rgba(70,150,230,0.55);   --sea-mid-bot: rgba(30,90,170,0.55);
+      --sea-near-top: rgba(52,190,200,0.55);  --sea-near-bot: rgba(16,80,140,0.85);
+      /* sky starts fully transparent at the top edge → diffuses into the card */
+      background:
+        radial-gradient(120% 70% at 75% 30%, rgba(245,200,66,0.07), transparent 60%),
+        linear-gradient(180deg, transparent 0%, rgba(108,156,255,0.08) 45%, rgba(20,60,120,0.22) 100%);
+    }
+    [data-theme="light"] .ocean-wrap {
+      --sea-far-top: rgba(54,96,216,0.22);   --sea-far-bot: rgba(54,96,216,0.12);
+      --sea-mid-top: rgba(40,130,220,0.40);  --sea-mid-bot: rgba(30,90,190,0.38);
+      --sea-near-top: rgba(20,170,190,0.45); --sea-near-bot: rgba(20,90,170,0.65);
     }
     .ocean-svg { width: 100%; height: 100%; display: block; }
-    .ocean-wave-back { fill: rgba(108,156,255,0.30); }
-    .ocean-wave-front { fill: rgba(52,217,158,0.38); }
-    [data-theme="light"] .ocean-wave-back { fill: rgba(54,96,216,0.22); }
-    [data-theme="light"] .ocean-wave-front { fill: rgba(10,158,105,0.24); }
+    .wave-crest { stroke: rgba(255,255,255,0.22); stroke-width: 0.9; stroke-linejoin: round; }
+    .wave-crest.near { stroke: rgba(255,255,255,0.30); }
 
     .ship-group { transition: transform 1.8s cubic-bezier(0.4,0,0.2,1); }
-    /* Smoke leaves the funnel mouth and trails BACKWARD along the ship's
-       wake — the vessel sails to the right, so relative airflow pushes the
-       plume up and to the LEFT (toward the stern), on a diagonal. */
+    /* Smoke leaves the funnel mouth and drifts aft (left) as it rises and
+       spreads — the vessel sails to the right. */
     .ship-smoke {
+      fill: rgba(222,228,240,0.85);
       opacity: 0;
       transform-box: fill-box; transform-origin: center;
-      animation: smoke-puff 3s ease-out infinite;
+      animation: smoke-puff 3.6s cubic-bezier(.25,.6,.4,1) infinite;
     }
-    .ship-smoke.s2 { animation-delay: 1s; }
-    .ship-smoke.s3 { animation-delay: 2s; }
+    .ship-smoke.s2 { animation-delay: 0.9s; }
+    .ship-smoke.s3 { animation-delay: 1.8s; }
+    .ship-smoke.s4 { animation-delay: 2.7s; }
     @keyframes smoke-puff {
-      0%   { opacity: 0;    transform: translate(0, 0)      scale(0.35); }
-      12%  { opacity: 0.75; transform: translate(-2px,-4px) scale(0.6); }
-      55%  { opacity: 0.45; transform: translate(-11px,-14px) scale(1.05); }
-      100% { opacity: 0;    transform: translate(-22px,-26px) scale(1.6); }
+      0%   { opacity: 0;    transform: translate(0, 0)        scale(0.4); }
+      10%  { opacity: 0.8;  transform: translate(-1px,-3px)   scale(0.65); }
+      50%  { opacity: 0.45; transform: translate(-10px,-11px) scale(1.15); }
+      100% { opacity: 0;    transform: translate(-24px,-19px) scale(1.9); }
     }
-    .ship-propeller { transform-origin: 3px 33px; transform-box: view-box; animation: prop-spin 0.5s linear infinite; }
+    .ship-propeller { transform-box: fill-box; transform-origin: center; animation: prop-spin 0.45s linear infinite; }
     @keyframes prop-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .ship-wake { animation: wake-shimmer 1.6s ease-in-out infinite; }
+    @keyframes wake-shimmer { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+    .ship-bowwave { animation: wake-shimmer 1.1s ease-in-out infinite; }
+    .ship-mast-light { animation: pulse-dot 2.2s infinite; }
+    .ship-anchor { display: none; }
+
+    /* Voyage over (or not begun): engine off — no smoke, no wake, prop still */
+    .ship-stopped .ship-smokes, .ship-stopped .ship-wake, .ship-stopped .ship-bowwave { display: none; }
+    .ship-stopped .ship-propeller { animation: none; }
+    .ship-stopped .ship-anchor { display: block; }
+    .ship-status-chip {
+      position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; font-weight: 700; letter-spacing: 0.4px; white-space: nowrap;
+      color: var(--text-soft); padding: 4px 10px; border-radius: 20px;
+      background: var(--glass-strong); border: 1px solid var(--glass-border-strong);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ship-smoke, .ship-propeller, .ship-wake, .ship-bowwave { animation: none; }
+    }
 
     /* Start / End markers anchored at the ship's departure & destination points */
     .ocean-marker {
@@ -559,7 +705,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .mood-card-emoji, .mood-card-arrow, .biryani-today-banner,
-      .biryani-today-emoji, .biryani-leg-emoji { animation: none; }
+      .biryani-today-emoji { animation: none; }
     }
     .mood-card-texts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .mood-card-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
@@ -596,15 +742,19 @@
       transition: all 0.2s;
     }
     .stress-dot.selected {
-      background: linear-gradient(135deg, var(--sapphire), #a78bff);
-      border-color: transparent; color: #fff;
+      background: var(--sc, var(--sapphire));
+      border-color: transparent; color: #0a0e1a; transform: translateY(-2px);
+      box-shadow: 0 6px 16px -4px var(--sc, var(--sapphire));
     }
+    .stress-hint { float: right; font-weight: 800; font-size: 11.5px; }
+    .stress-scale { display: flex; justify-content: space-between; margin-top: 6px; font-size: 9.5px; color: var(--text-muted); font-family: var(--font-mono); }
 
     /* ── MOOD HISTORY / GRAPH MODAL ────────────────────────── */
+    #moodHistoryModal .modal { max-height: 92vh; overflow-y: auto; padding-bottom: 28px; }
     .mood-history-toggle {
       display: flex; border-radius: 30px; overflow: hidden;
       background: var(--bg3); border: 1px solid var(--glass-border-strong);
-      margin-bottom: 18px; width: fit-content;
+      margin-bottom: 14px; width: fit-content;
     }
     .mood-history-toggle button {
       padding: 7px 18px; font-size: 12px; font-weight: 700; cursor: pointer;
@@ -615,12 +765,99 @@
       background: linear-gradient(135deg, var(--emerald), #5eefc0);
       color: #06251b; border-radius: 30px; margin: 2px;
     }
-    .mood-chart-wrap { width: 100%; overflow-x: auto; padding-bottom: 4px; }
-    .mood-chart-svg { display: block; min-width: 100%; }
+    .mc-wrap { position: relative; border-radius: 18px; background: var(--bg3); border: 1px solid var(--glass-border); padding-top: 54px; overflow: hidden; }
+    .mood-chart-wrap { width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .mood-chart-wrap::-webkit-scrollbar { display: none; }
+    .mood-chart-svg { display: block; min-width: 100%; touch-action: pan-x; }
+    .mc-axis { position: absolute; left: 0; top: 54px; bottom: 0; width: 30px; z-index: 2; pointer-events: none;
+      background: linear-gradient(90deg, var(--bg3) 70%, transparent); }
+    .mc-axis-lbl { position: absolute; left: 6px; transform: translateY(-50%); font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+    .mc-axis-lbl.emoji { font-size: 13px; left: 5px; }
+    .mc-grid { stroke: var(--glass-border); stroke-width: 1; stroke-dasharray: 2 4; }
+    .mc-month-line { stroke: var(--glass-border-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+    .mc-month { font-family: var(--font-mono); font-size: 9px; font-weight: 700; fill: var(--gold); letter-spacing: 1px; }
+    .mc-day { font-family: var(--font-mono); font-size: 8.5px; fill: var(--text-muted); text-anchor: middle; }
+    .mc-day.today { fill: var(--emerald); font-weight: 700; }
+    .mc-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: mc-draw 1.4s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes mc-draw { to { stroke-dashoffset: 0; } }
+    .mc-area { opacity: 0; animation: mc-fade 1s 0.5s ease forwards; }
+    @keyframes mc-fade { to { opacity: 1; } }
+    .mc-dot { stroke: var(--bg3); stroke-width: 2; transition: r 0.2s; }
+    .mc-dot.sel { r: 6.5; stroke: #fff; }
+    .mc-hit { fill: transparent; cursor: pointer; }
+    .mc-cursor { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0; transition: opacity 0.2s; }
+    .mc-cursor.on { opacity: 1; }
+    .mc-tip {
+      position: absolute; top: 6px; left: 8px; z-index: 3; pointer-events: none;
+      padding: 6px 10px; border-radius: 12px; min-width: 130px;
+      background: var(--glass-strong); border: 1px solid var(--glass-border-strong);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 6px 18px var(--shadow);
+      opacity: 0; transform: translateY(-4px); transition: opacity 0.2s, transform 0.2s, left 0.15s;
+    }
+    .mc-tip.on { opacity: 1; transform: translateY(0); }
+    .mc-tip-date { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
+    .mc-tip-row { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-soft); white-space: nowrap; }
+    .mc-tip-row b { color: var(--text); }
+    .mc-tip-row.muted { color: var(--text-muted); }
+    .mc-tip-emoji { font-size: 14px; }
+    .mc-tip-dot { width: 8px; height: 8px; border-radius: 50%; }
     .mood-chart-empty { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 13px; }
-    .mood-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+    .mood-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
     .mood-legend-item { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--text-muted); }
     .mood-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Stats */
+    .ms-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 20px 0 12px; flex-wrap: wrap; }
+    .ms-scope { display: flex; background: var(--bg3); border: 1px solid var(--glass-border-strong); border-radius: 30px; }
+    .ms-scope button { border: none; background: transparent; color: var(--text-muted); font: 700 11.5px var(--font-body); padding: 6px 14px; border-radius: 30px; cursor: pointer; margin: 2px; }
+    .ms-scope button.active { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #1a1200; }
+    .ms-month { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 800; font-size: 13px; color: var(--text); }
+    .ms-month button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border-strong); background: var(--glass); color: var(--text); font-size: 16px; cursor: pointer; line-height: 1; }
+    .ms-month button:disabled { opacity: 0.3; cursor: default; }
+    .ms-card { border-radius: 18px; background: var(--bg3); border: 1px solid var(--glass-border); padding: 14px; margin-bottom: 10px; animation: fadeUp 0.45s ease both; }
+    .ms-card-title { display: flex; justify-content: space-between; align-items: baseline; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; }
+    .ms-card-title span { letter-spacing: 0.3px; text-transform: none; font-family: var(--font-mono); font-weight: 700; color: var(--text-soft); }
+    .ms-mood { display: flex; align-items: center; gap: 14px; }
+    .donut-wrap { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
+    .donut { width: 100%; height: 100%; }
+    .dn-track { stroke: var(--glass-border); }
+    .dn-seg { cursor: pointer; transition: opacity 0.25s, stroke-width 0.25s; animation: dn-in 0.9s cubic-bezier(.3,.7,.3,1) both; }
+    .dn-seg.dim { opacity: 0.25; }
+    @keyframes dn-in { from { stroke-dasharray: 0 400; } }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .dc-emoji { font-size: 20px; line-height: 1; }
+    .dc-pct { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); line-height: 1.1; }
+    .dc-lbl { font-size: 9px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
+    .ms-list { flex: 1; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .ms-row { display: grid; grid-template-columns: 18px 62px 1fr 34px; align-items: center; gap: 6px; cursor: pointer; border-radius: 8px; padding: 1px 2px; transition: background 0.2s; }
+    .ms-row.sel { background: var(--glass-hover); }
+    .ms-emoji { font-size: 14px; }
+    .ms-name { font-size: 11px; font-weight: 700; color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ms-bar { height: 6px; border-radius: 6px; background: var(--glass-border); overflow: hidden; }
+    .ms-bar i { display: block; height: 100%; border-radius: 6px; animation: bar-in 0.9s cubic-bezier(.3,.7,.3,1) both; transform-origin: left; }
+    @keyframes bar-in { from { transform: scaleX(0); } }
+    .ms-pct { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: var(--text); text-align: right; }
+    .ms-stack { display: flex; height: 14px; border-radius: 10px; overflow: hidden; gap: 2px; background: var(--glass-border); }
+    .ms-stack i { display: block; height: 100%; animation: bar-in 0.9s cubic-bezier(.3,.7,.3,1) both; transform-origin: left; }
+    .ms-stress-legend { display: flex; justify-content: space-between; margin-top: 10px; }
+    .ms-sl { display: flex; flex-direction: column; align-items: center; gap: 1px; flex: 1; }
+    .ms-sl-pct { font-family: var(--font-display); font-weight: 900; font-size: 20px; line-height: 1; }
+    .ms-sl-lbl { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+    .ms-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ms-chip { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 20px; background: var(--glass); border: 1px solid var(--glass-border-strong); color: var(--text-soft); }
+    .ms-chip.good { color: var(--emerald); border-color: rgba(52,217,158,0.35); background: var(--emerald-glow); }
+    .ms-chip.bad  { color: var(--danger); border-color: rgba(255,107,122,0.35); background: rgba(255,107,122,0.10); }
+    .ms-months { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .ms-months::-webkit-scrollbar { display: none; }
+    .ms-mcol { flex: 0 0 38px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: transparent; cursor: pointer; padding: 0; }
+    .ms-mbar { width: 22px; height: 90px; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; background: var(--glass-border); }
+    .ms-mbar i { display: block; width: 100%; animation: col-in 0.9s cubic-bezier(.3,.7,.3,1) both; transform-origin: bottom; }
+    .ms-mbar i.empty { background: transparent; }
+    @keyframes col-in { from { transform: scaleY(0); } }
+    .ms-mstress { font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
+    .ms-mlbl { font-size: 9.5px; color: var(--text-muted); font-weight: 700; }
+    .ms-note { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
 
     /* ── PAGES ─────────────────────────────────────── */
     .page { display: none; padding: 0; }
@@ -877,7 +1114,7 @@
     <div class="status-bar">
       <div class="update-badge">
         <span class="update-dot"></span>
-        <span id="updateStatus">Updates at 4:00 PM</span>
+        <span id="updateStatus">Updates at 5:00 PM</span>
         &nbsp;<span id="rateChip" class="rate-chip"></span>
       </div>
       <div class="currency-toggle-pill">
@@ -973,8 +1210,9 @@
       </div>
 
       <div class="mood-stress-row">
-        <label>Stress level today</label>
+        <label>Stress level today <span id="stressHint" class="stress-hint"></span></label>
         <div class="stress-dots" id="stressDots"></div>
+        <div class="stress-scale"><span>0 · No stress</span><span>5 · High stress</span></div>
       </div>
 
       <div class="modal-actions">
@@ -989,7 +1227,7 @@
     <div class="modal">
       <div class="modal-handle"></div>
       <div class="modal-title">Mood History</div>
-      <div class="modal-sub">Last 30 days</div>
+      <div class="modal-sub" id="moodHistorySub">Your days at sea</div>
 
       <div class="mood-history-toggle">
         <button id="histBtnMood" class="active" onclick="setMoodHistoryView('mood')">Mood</button>
@@ -1131,7 +1369,11 @@
   }
 
   // Earnings credit cut-off — the hour at which "today" is considered earned.
-  const CREDIT_HOUR = 16; // 4:00 PM local
+  // This is the ONLY place the credit time is defined — every label and the
+  // live ticker derive from it, so the UI can never say 4 PM while the math
+  // credits at 5 PM (the old mismatch made it look random).
+  const CREDIT_HOUR = 17; // 5:00 PM local
+  const CREDIT_LABEL = (CREDIT_HOUR % 12 || 12) + ':00 ' + (CREDIT_HOUR < 12 ? 'AM' : 'PM');
 
   // ── CALCULATIONS ───────────────────────────────────────────────
   function getEarnings() {
@@ -1146,7 +1388,7 @@
     const todayUnlocked = now >= cutoffToday;
 
     // Calendar-day index of today relative to start (start date itself = day 1).
-    // Before the 4 PM cut-off today has not been credited yet, so we count one
+    // Before the credit cut-off today has not been credited yet, so we count one
     // fewer day — but we do it by subtracting from the *day index*, not by
     // rewinding the clock 24h.
     const todayIndex = daysBetween(start, now) + 1;   // 1-based; today included
@@ -1219,8 +1461,9 @@
   // This only ever animates the portion of TODAY that has already elapsed —
   // it never invents money beyond one day's rate, so the number the user sees
   // in the evening is exactly the correct credited total.
-  const WORK_START_HOUR = 8;   // 08:00
-  const WORK_END_HOUR   = 18;  // 18:00  → 10-hour working day
+  const WORK_START_HOUR = 8;            // 08:00
+  const WORK_END_HOUR   = CREDIT_HOUR;  // 17:00 → the live amount reaches the full
+                                        // day's pay exactly when it is credited
 
   // Fraction (0..1) of today's pay accrued at this instant.
   function workDayFraction(now) {
@@ -1232,7 +1475,7 @@
   }
 
   // Total earned including the live in-progress accrual for the current day.
-  // Once today is credited (past 4 PM) `daysWorked` already contains it, so we
+  // Once today is credited (past CREDIT_HOUR) `daysWorked` already contains it, so we
   // must not add the partial day a second time.
   function getLiveTotal(e) {
     if (!e) return 0;
@@ -1294,6 +1537,24 @@
     }
 
     const pct = Math.round(e.progressPct);
+    // Ship position + engine state. The voyage is "over" from the contract's end
+    // date on; before the start date the ship waits in port. Both follow the
+    // user's settings, whatever values they enter.
+    const voyageIdx = daysBetween(e.startDate, new Date()) + 1;
+    const shipState = e.totalDays > 0 && e.daysWorked >= e.totalDays ? 'arrived'
+                    : voyageIdx < 1 ? 'port' : 'sailing';
+    const shipX = 6 + (Math.min(e.progressPct, 100) / 100) * (400 - 12 - 70 * SHIP_SCALE);
+
+    // Biryani: 'cooking' on Sunday until the day is credited, 'served' after,
+    // otherwise the weekly countdown. Only on days inside the contract.
+    const isContractDay = voyageIdx >= 1 && voyageIdx <= e.totalDays;
+    const biryaniMode = e.isSundayToday && isContractDay ? (e.todayUnlocked ? 'served' : 'cooking') : 'week';
+    const daysToSunday = (7 - new Date().getDay()) % 7;
+    const weekDots = ['M','T','W','T','F','S','S'].map((lbl, i) => {
+      const dow = (new Date().getDay() + 6) % 7;          // 0 = Monday
+      const cls = (i < dow ? ' past' : '') + (i === dow ? ' today' : '') + (i === 6 ? ' sun' : '');
+      return { lbl, cls, sun: i === 6 };
+    });
     const earningsPct = e.contractValue > 0 ? Math.min((e.totalEarned / e.contractValue) * 100, 100) : 0;
     const weeklyRate = e.dailyRate * 7;
     const motive = MOTIVES[currentMotiveIdx];
@@ -1326,8 +1587,11 @@
     container.innerHTML = `
       <!-- HERO -->
       <div class="hero-card fade-up d1">
-        <div class="hero-label">Total Earned</div>
-        <div class="hero-amount" id="heroAmt">₹0</div>
+        <div class="hero-label">Total Earned${isAccruing(e) ? ' <span class="live-pill"><i></i>LIVE</span>' : ''}</div>
+        <div class="hero-amount-row">
+          <div class="hero-amount odo" id="heroAmt"></div>
+          <div class="hero-delta" id="heroDelta"></div>
+        </div>
         <div class="hero-sub">
           Contract: <span>${fmt(e.contractValue)}</span>
           &nbsp;·&nbsp; Extra: <span class="gold-val">${fmt(e.extraTotal)}</span>
@@ -1343,8 +1607,8 @@
             </div>
             <div class="hero-today-texts">
               <div class="hero-today-label">Today's Earning</div>
-              <div class="hero-today-amt" id="todayAmt">₹0</div>
-              <div class="hero-today-note">${e.todayUnlocked ? 'Credited at 4:00 PM' : 'Credits at 4:00 PM today'}</div>
+              <div class="hero-today-amt odo" id="todayAmt"></div>
+              <div class="hero-today-note">${e.todayUnlocked ? 'Credited at ' + CREDIT_LABEL : 'Credits at ' + CREDIT_LABEL + ' today'}</div>
             </div>
           </div>
           <div class="today-badge ${e.todayUnlocked ? '' : 'pending'}">${e.todayUnlocked ? '✓ PAID' : 'PENDING'}</div>
@@ -1371,13 +1635,22 @@
       </div>
 
       <!-- BIRYANI COUNTER CARD -->
-      <div class="biryani-card fade-up d3${e.isBiryaniToday ? ' is-biryani-day' : ''}">
+      <div class="biryani-card fade-up d3${biryaniMode !== 'week' ? ' is-biryani-day' : ''}${biryaniMode === 'cooking' ? ' is-cooking' : ''}">
         <div class="biryani-card-header">
           <div class="biryani-card-title">Biryani Counter</div>
           <div class="biryani-card-sub">Every Sunday 🍛</div>
         </div>
         <div class="biryani-main">
-          <div class="biryani-leg-emoji">🍗</div>
+          <div class="biryani-dish" aria-hidden="true">
+            ${biryaniMode !== 'week' ? `
+            <svg class="biryani-steam" viewBox="0 0 60 44">
+              <path class="wisp w1" d="M18,42 C12,34 24,28 18,20 C13,13 22,8 19,2"/>
+              <path class="wisp w2" d="M30,42 C24,33 36,27 30,18 C25,11 34,6 31,0"/>
+              <path class="wisp w3" d="M42,42 C36,34 48,28 42,20 C37,13 46,8 43,2"/>
+            </svg>` : ''}
+            <span class="biryani-plate-big">🍛</span>
+            <span class="biryani-leg">🍗</span>
+          </div>
           <div class="biryani-count-block">
             <div class="biryani-count-row">
               <div class="biryani-count-num">${e.sundaysCompleted}</div>
@@ -1386,17 +1659,32 @@
             <div class="biryani-count-caption">Sundays completed since contract start</div>
           </div>
         </div>
-        <div class="biryani-plates">
-          ${Array.from({length: Math.max(e.sundaysCompleted + (e.isBiryaniToday ? 1 : 0), 1)}, (_, i) =>
-            `<span class="biryani-plate${i < e.sundaysCompleted ? '' : ' pending'}">🍛</span>`
-          ).join('')}
+        <div class="biryani-week">
+          ${weekDots.map(d => `<div class="bw-day${d.cls}"><span class="bw-dot">${d.sun ? '🍛' : ''}</span><span class="bw-lbl">${d.lbl}</span></div>`).join('')}
         </div>
-        ${e.isBiryaniToday
+        <div class="biryani-plates">
+          ${(() => {
+            const total = Math.max(e.sundaysCompleted + (e.isBiryaniToday ? 1 : 0), 1);
+            const MAX = 24, shown = Math.min(total, MAX);
+            const start = total - shown;   // keep the newest plates visible
+            let html = start > 0 ? `<span class="biryani-plate-more">+${start}</span>` : '';
+            for (let i = start; i < total; i++) {
+              html += `<span class="biryani-plate${i < e.sundaysCompleted ? '' : ' pending'}">🍛</span>`;
+            }
+            return html;
+          })()}
+        </div>
+        ${biryaniMode === 'cooking'
           ? `<div class="biryani-today-banner">
-               <span class="biryani-today-emoji">🍛</span>
-               <span class="biryani-today-text">Today is <b>Biryani Day</b> — enjoy it!</span>
+               <span class="biryani-today-emoji">👨‍🍳</span>
+               <span class="biryani-today-text">It's Sunday — <b>Biryani is being prepared</b><span class="cook-dots"><i>.</i><i>.</i><i>.</i></span></span>
              </div>`
-          : (e.nextBiryaniDate ? `<div class="biryani-next">Next biryani: <b>${e.nextBiryaniDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</b></div>` : '')}
+          : biryaniMode === 'served'
+          ? `<div class="biryani-today-banner served">
+               <span class="biryani-today-emoji">😋</span>
+               <span class="biryani-today-text"><b>Biryani is served!</b> Enjoy your Sunday plate</span>
+             </div>`
+          : (e.nextBiryaniDate ? `<div class="biryani-next">Next biryani: <b>${e.nextBiryaniDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</b>${daysToSunday === 1 ? ' · tomorrow! 🤤' : ` · in ${daysToSunday} days`}</div>` : '')}
       </div>
 
       <!-- CONTRACT JOURNEY CARD -->
@@ -1421,41 +1709,87 @@
             </div>
           </div>
         </div>
-        <div class="ocean-wrap">
+        <div class="ocean-wrap${shipState !== 'sailing' ? ' ship-stopped' : ''}">
           <svg class="ocean-svg" viewBox="0 0 400 128" preserveAspectRatio="none">
-            <path id="waveBack" class="ocean-wave-back" d="M0,64 Q50,52 100,64 T200,64 T300,64 T400,64 V128 H0 Z" />
-            <path id="waveFront" class="ocean-wave-front" d="M0,80 Q50,70 100,80 T200,80 T300,80 T400,80 V128 H0 Z" />
-            <g id="shipGroup" class="ship-group" transform="translate(${16 + (pct/100) * 328},50)">
-              <!-- bow wake (front of ship, direction of travel = right) -->
-              <ellipse cx="58" cy="31" rx="9" ry="3" fill="rgba(255,255,255,0.30)"/>
-              <ellipse cx="8" cy="30" rx="7" ry="2.4" fill="rgba(255,255,255,0.18)"/>
-              <!-- funnel -->
-              <rect x="26" y="4" width="8" height="12" rx="1.5" fill="#3a4257"/>
-              <rect x="26" y="4" width="8" height="3" rx="1.5" fill="var(--gold)"/>
-              <!-- smoke — rises from the funnel MOUTH (top edge y=4) and
-                   trails back toward the stern (leftward diagonal) -->
-              <circle class="ship-smoke s1" cx="30" cy="1.5" r="3" fill="rgba(225,231,242,0.8)"/>
-              <circle class="ship-smoke s2" cx="30" cy="1.5" r="3" fill="rgba(225,231,242,0.8)"/>
-              <circle class="ship-smoke s3" cx="30" cy="1.5" r="3" fill="rgba(225,231,242,0.8)"/>
-              <!-- hull -->
-              <path d="M0,26 L60,26 L54,38 L6,38 Z" fill="var(--sapphire)"/>
-              <path d="M4,30 L56,30 L52,34 L8,34 Z" fill="rgba(255,255,255,0.14)"/>
-              <!-- deck + containers -->
-              <rect x="4" y="19" width="14" height="7" rx="1" fill="#ff8a5b"/>
-              <rect x="19" y="19" width="14" height="7" rx="1" fill="#5eefc0"/>
-              <!-- bridge -->
-              <rect x="34" y="10" width="17" height="16" rx="2" fill="#eef2fb"/>
-              <rect x="37" y="13" width="4" height="4" rx="0.5" fill="var(--sapphire)"/>
-              <rect x="43" y="13" width="4" height="4" rx="0.5" fill="var(--sapphire)"/>
-              <rect x="37" y="19" width="10" height="3" rx="0.5" fill="var(--sapphire)"/>
-              <!-- propeller (stern, back of ship) -->
-              <g class="ship-propeller">
-                <line x1="3" y1="30" x2="3" y2="36" stroke="#8fa3c8" stroke-width="1"/>
-                <line x1="0.5" y1="33" x2="5.5" y2="33" stroke="#8fa3c8" stroke-width="1"/>
+            <defs>
+              <linearGradient id="seaFar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--sea-far-top)"/><stop offset="100%" stop-color="var(--sea-far-bot)"/>
+              </linearGradient>
+              <linearGradient id="seaMid" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--sea-mid-top)"/><stop offset="100%" stop-color="var(--sea-mid-bot)"/>
+              </linearGradient>
+              <linearGradient id="seaNear" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--sea-near-top)"/><stop offset="100%" stop-color="var(--sea-near-bot)"/>
+              </linearGradient>
+              <filter id="smokeBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="0.7"/></filter>
+            </defs>
+            <path id="waveFar"  fill="url(#seaFar)"/>
+            <path id="waveMid"  fill="url(#seaMid)"/>
+            <path id="crestMid" class="wave-crest" fill="none"/>
+            <g id="shipGroup" class="ship-group" data-x="${shipX.toFixed(1)}" transform="translate(${shipX.toFixed(1)},0)">
+              <g id="shipBob" transform="translate(0,38)">
+                <!-- wake trailing behind the stern (ship sails right) -->
+                <g class="ship-wake">
+                  <path d="M2,35 Q-14,33 -34,36" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                  <path d="M2,37 Q-18,38 -42,39" stroke="rgba(255,255,255,0.35)" stroke-width="1" fill="none" stroke-linecap="round"/>
+                </g>
+                <!-- propeller + rudder (stern, under the waterline) -->
+                <g class="ship-propeller">
+                  <ellipse cx="3.6" cy="34" rx="0.9" ry="3.2" fill="#9fb0d0"/>
+                  <ellipse cx="3.6" cy="34" rx="3.2" ry="0.9" fill="#9fb0d0"/>
+                </g>
+                <circle cx="3.6" cy="34" r="1" fill="#6f7fa3"/>
+                <path d="M0.6,31 L2,31 L2,37.5 L0.6,37 Z" fill="#59647f"/>
+                <!-- funnel (aft, just behind the accommodation) — the smoke source -->
+                <path d="M3.2,15 L4.2,2.4 L9.6,2.4 L9.2,15 Z" fill="#323a4f"/>
+                <path d="M4.05,4.4 L9.5,4.4 L9.45,6.6 L3.9,6.6 Z" fill="var(--gold)"/>
+                <path d="M4.2,2.4 L9.6,2.4 L9.6,3.3 L4.1,3.3 Z" fill="#1d2232"/>
+                <!-- smoke: puffs leave the funnel mouth and drift aft -->
+                <g class="ship-smokes" filter="url(#smokeBlur)">
+                  <circle class="ship-smoke s1" cx="6.9" cy="1.6" r="2.4"/>
+                  <circle class="ship-smoke s2" cx="6.9" cy="1.6" r="2.4"/>
+                  <circle class="ship-smoke s3" cx="6.9" cy="1.6" r="2.4"/>
+                  <circle class="ship-smoke s4" cx="6.9" cy="1.6" r="2.4"/>
+                </g>
+                <!-- accommodation block + bridge (aft) -->
+                <rect x="9" y="9" width="12" height="16" rx="0.8" fill="#eef2fb"/>
+                <rect x="7.5" y="7.2" width="15" height="3.4" rx="0.8" fill="#ffffff"/>
+                <rect x="8.6" y="8.1" width="12.8" height="1.4" rx="0.4" fill="#1e3a6b"/>
+                <rect x="10.4" y="12.4" width="9.2" height="1.1" rx="0.3" fill="#7d93bd"/>
+                <rect x="10.4" y="15.6" width="9.2" height="1.1" rx="0.3" fill="#7d93bd"/>
+                <rect x="10.4" y="18.8" width="9.2" height="1.1" rx="0.3" fill="#7d93bd"/>
+                <line x1="15" y1="7.2" x2="15" y2="2.2" stroke="#c9d3e8" stroke-width="0.7"/>
+                <rect x="13.2" y="2.6" width="3.6" height="0.8" rx="0.3" fill="#c9d3e8"/>
+                <circle class="ship-mast-light" cx="15" cy="2" r="0.7" fill="#ffd36b"/>
+                <!-- containers (forward of the accommodation) -->
+                <g class="ship-boxes">
+                  <rect x="23"   y="17.5" width="7.2" height="7"   rx="0.5" fill="#ff8a5b"/>
+                  <rect x="30.6" y="17.5" width="7.2" height="7"   rx="0.5" fill="#5eefc0"/>
+                  <rect x="38.2" y="17.5" width="7.2" height="7"   rx="0.5" fill="#6c9cff"/>
+                  <rect x="45.8" y="17.5" width="7.2" height="7"   rx="0.5" fill="#f5c842"/>
+                  <rect x="53.4" y="18.5" width="6.4" height="6"   rx="0.5" fill="#ff6b7a"/>
+                  <rect x="23"   y="11"   width="7.2" height="6.2" rx="0.5" fill="#a78bff"/>
+                  <rect x="30.6" y="11"   width="7.2" height="6.2" rx="0.5" fill="#ff6b7a"/>
+                  <rect x="38.2" y="11"   width="7.2" height="6.2" rx="0.5" fill="#34d99e"/>
+                  <rect x="45.8" y="12"   width="7.2" height="5.2" rx="0.5" fill="#ff8a5b"/>
+                </g>
+                <!-- hull: raked bow on the right, boot-top below the waterline -->
+                <path d="M1.2,24.5 L63,24.5 Q67.5,24.3 69.5,22.2 L64.6,35.6 Q63.6,38.2 60.4,38.2 L7.2,38.2 Q3.4,38.2 2.4,34.6 Z" fill="#20345e"/>
+                <path d="M1.2,24.5 L63,24.5 Q67.5,24.3 69.5,22.2 L69,23.6 Q67,26 63,26 L1.5,26 Z" fill="#ffffff" opacity="0.9"/>
+                <path d="M2.9,33.4 L65.6,33.4 L64.6,35.6 Q63.6,38.2 60.4,38.2 L7.2,38.2 Q3.4,38.2 2.4,34.6 Z" fill="#c24a3e"/>
+                <line x1="64" y1="21.5" x2="64" y2="24.5" stroke="#c9d3e8" stroke-width="0.6"/>
+                <!-- bow wave -->
+                <path class="ship-bowwave" d="M60,34.5 Q66,32 71,34.8" stroke="rgba(255,255,255,0.75)" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                <!-- anchor chain, only shown once the voyage is over -->
+                <g class="ship-anchor">
+                  <line x1="64.5" y1="27" x2="66.5" y2="44" stroke="#9fb0d0" stroke-width="0.7" stroke-dasharray="1 0.8"/>
+                </g>
               </g>
-              <circle cx="3" cy="33" r="2.1" fill="none" stroke="#8fa3c8" stroke-width="0.8"/>
             </g>
+            <path id="waveNear" fill="url(#seaNear)"/>
+            <path id="crestNear" class="wave-crest near" fill="none"/>
           </svg>
+          ${shipState !== 'sailing' ? `<div class="ship-status-chip">${shipState === 'arrived' ? '⚓ Arrived · engines stopped' : '⚓ In port · voyage not started'}</div>` : ''}
           <div class="ocean-marker start">
             <span class="marker-dot"></span>
             <span>START</span>
@@ -1492,8 +1826,11 @@
 
     // Animate numbers after paint
     setTimeout(() => {
-      animateCounter(document.getElementById('heroAmt'),  getLiveTotal(e), fmtBig, 1400, startLiveTicker);
-      animateCounter(document.getElementById('todayAmt'), e.todayEarned,  fmtBig, 1000);
+      // Hero + today roll up from zero like a game score, then keep rolling live.
+      const dec = liveDecimals(e);
+      rollOdometer(document.getElementById('heroAmt'),  fmtLive(getLiveTotal(e), dec), { fromZero: true, ms: 1600 });
+      rollOdometer(document.getElementById('todayAmt'), fmtLive(getTodayLive(e), dec), { fromZero: true, ms: 1300 });
+      setTimeout(startLiveTicker, 1700);
       animateCounter(document.getElementById('tabDay'),   e.dailyRate,    fmtTab, 900);
       animateCounter(document.getElementById('tabWeek'),  weeklyRate,     fmtTab, 1000);
       animateCounter(document.getElementById('tabMonth'), state.settings.monthlySalary, fmtTab, 1100);
@@ -1530,35 +1867,137 @@
     requestAnimationFrame(tick);
   }
 
-  // ── LIVE TOTAL TICKER ──────────────────────────────────────────
-  // After the count-up animation settles, the hero figure keeps creeping
-  // upward in real time so the user can *see* their money accruing. Updates
-  // every 2s — fast enough to feel alive, slow enough not to be distracting.
-  //
-  // The value shown is always the honest one: it is derived from the clock,
-  // so at any instant it equals exactly what has been earned so far. It stops
-  // on its own once today is credited or the contract is complete.
+  // ── LIVE TOTAL TICKER (rolling odometer) ───────────────────────
+  // While today's pay is accruing (08:00 → credit time) the hero figure rolls
+  // upward every TICK_MS like a game score: each digit column scrolls to its
+  // new value. The number is always the honest one, derived from the clock.
+  // Enough decimals are shown that every tick visibly moves by 10+ "points"
+  // (paise / cents) — at a sea salary a whole rupee takes several seconds.
+  const TICK_MS = 2500;
   let liveTickerId = null;
+
+  // Index of today within the contract (1-based) — 0 / beyond = not a contract day.
+  function contractDayIndex(e) { return daysBetween(e.startDate, new Date()) + 1; }
+
+  function isAccruing(e) {
+    if (!e || e.todayUnlocked || e.daysWorked >= e.totalDays) return false;
+    const idx = contractDayIndex(e);
+    if (idx < 1 || idx > e.totalDays) return false;
+    const f = workDayFraction(new Date());
+    return f > 0 && f < 1;
+  }
+
+  // Today's accrued-so-far (before credit) or the full credited day.
+  function getTodayLive(e) {
+    if (!e) return 0;
+    if (e.todayUnlocked) return e.todayEarned;
+    if (e.daysWorked >= e.totalDays) return 0;
+    const idx = contractDayIndex(e);
+    if (idx < 1 || idx > e.totalDays) return 0;
+    return e.dailyRate * workDayFraction(new Date());
+  }
+
+  function liveDecimals(e) {
+    if (!isAccruing(e)) return 0;
+    const rate = state.currency === 'INR' ? getEffectiveRate() : 1;
+    const perSec = e.dailyRate * rate / ((WORK_END_HOUR - WORK_START_HOUR) * 3600);
+    const perTick = perSec * TICK_MS / 1000;
+    if (!(perTick > 0)) return 2;
+    return Math.max(2, Math.min(4, Math.ceil(Math.log10(12 / perTick))));
+  }
+
+  function fmtLive(val, dec) {
+    const inr = state.currency === 'INR';
+    const v = val * (inr ? getEffectiveRate() : 1);
+    const scale = Math.pow(10, dec);
+    const units = Math.floor(v * scale + 1e-6);          // never round up past what's earned
+    const whole = Math.floor(units / scale);
+    const frac = dec ? '.' + String(units % scale).padStart(dec, '0') : '';
+    return (inr ? '₹' + whole.toLocaleString('en-IN') : '$' + whole.toLocaleString('en-US')) + frac;
+  }
+
+  // Odometer: every digit is a vertical strip 0-9,0-9 that slides; other
+  // characters (₹ , .) are static. Wrapping 9 → 0 rolls forward into the
+  // second 0-9 and then snaps back invisibly, so digits only ever roll UP.
+  function rollOdometer(el, text, opts) {
+    if (!el) return;
+    opts = opts || {};
+    const ms = opts.ms || 1500;
+    const mask = text.replace(/\d/g, '9');
+    if (el.dataset.mask !== mask) {
+      const fracAt = text.indexOf('.');
+      el.innerHTML = [...text].map((ch, i) => {
+        const frac = fracAt >= 0 && i >= fracAt ? ' odo-frac' : '';
+        if (!/\d/.test(ch)) return `<span class="odo-c${frac}">${ch}</span>`;
+        const cells = '01234567890123456789'.split('').map(d => `<span>${d}</span>`).join('');
+        return `<span class="odo-d${frac}"><span class="odo-s">${cells}</span></span>`;
+      }).join('');
+      // A re-layout mid-session (e.g. 9,999 → 10,000) jumps straight to the value.
+      if (el.dataset.mask && !opts.fromZero) opts = { ...opts, instant: true };
+      el.dataset.mask = mask;
+      el.querySelectorAll('.odo-s').forEach(st => { st.dataset.v = '0'; });
+    }
+    const strips = el.querySelectorAll('.odo-s');
+    const digits = text.replace(/\D/g, '');
+    const pos = (k) => `translateY(${-k * 5}%)`;   // 20 cells → each is 5% of the strip
+    strips.forEach((st, i) => {
+      const n = +digits[i];
+      const cur = +st.dataset.v;
+      clearTimeout(st._snap);
+      if (opts.instant) {
+        st.style.transition = 'none';
+        st.style.transform = pos(n);
+        st.dataset.v = String(n);
+        return;
+      }
+      if (n === cur && !opts.fromZero) return;
+      const target = n > cur ? n : n + 10;                  // roll forward through the wrap
+      const delay = opts.fromZero ? (strips.length - 1 - i) * 55 : 0;
+      st.style.transition = `transform ${ms}ms cubic-bezier(.16,.84,.24,1) ${delay}ms`;
+      st.style.transform = pos(opts.fromZero ? n + 10 : target);
+      st.dataset.v = String(n);
+      if ((opts.fromZero ? n + 10 : target) !== n) {
+        st._snap = setTimeout(() => {
+          st.style.transition = 'none';
+          st.style.transform = pos(n);
+        }, ms + delay + 40);
+      }
+    });
+  }
+
+  function showHeroDelta(diff, dec) {
+    const d = document.getElementById('heroDelta');
+    if (!d || !(diff > 0)) return;
+    d.textContent = '+' + fmtLive(diff, dec);
+    d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop');
+  }
+
   function stopLiveTicker() {
     if (liveTickerId) { clearInterval(liveTickerId); liveTickerId = null; }
   }
   function startLiveTicker() {
     stopLiveTicker();
-    const el = document.getElementById('heroAmt');
-    if (!el) return;
-    const e = getEarnings();
-    if (!e || e.todayUnlocked || e.daysWorked >= e.totalDays) return; // nothing left to accrue
+    if (!document.getElementById('heroAmt')) return;
+    const e0 = getEarnings();
+    if (!e0 || e0.todayUnlocked || e0.daysWorked >= e0.totalDays) return; // nothing left to accrue
+    let last = getLiveTotal(e0);
 
     liveTickerId = setInterval(() => {
       const cur = document.getElementById('heroAmt');
       if (!cur) { stopLiveTicker(); return; }   // dashboard was re-rendered
+      if (document.hidden) return;
       const ev = getEarnings();
       if (!ev) { stopLiveTicker(); return; }
-      // Crossed the 4 PM credit boundary while ticking — re-render so the
+      // Crossed the credit boundary while ticking — re-render so the
       // "PAID" badge, day counters and biryani state all update together.
       if (ev.todayUnlocked) { stopLiveTicker(); renderDash(); return; }
-      cur.textContent = fmtBig(getLiveTotal(ev));
-    }, 2000);
+      const dec = liveDecimals(ev);
+      const total = getLiveTotal(ev);
+      rollOdometer(cur, fmtLive(total, dec), { ms: 1600 });
+      rollOdometer(document.getElementById('todayAmt'), fmtLive(getTodayLive(ev), dec), { ms: 1600 });
+      showHeroDelta(total - last, dec);
+      last = total;
+    }, TICK_MS);
   }
 
   // ── SETTINGS ───────────────────────────────────────────────────
@@ -1759,101 +2198,159 @@
   }
 
   // ── CONFETTI (on load + manual) ────────────────────────────────
-  // Speed tuned: vy 1–2.5, gravity 0.06 — professional gentle fall
+  // Slow-motion paper confetti. Each piece is a thin sheet: it falls at a low
+  // terminal speed (air drag), sways side to side, and flips in 3-D — faked by
+  // squashing it along its tilt axis and darkening the back face — so it
+  // tumbles and catches the light the way real paper does. Physics is
+  // time-based, so the speed is the same on every phone.
+  let confettiRAF = null;
   function triggerCelebration(autoMode) {
     const canvas = document.getElementById('confettiCanvas');
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = window.innerWidth, H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     const ctx = canvas.getContext('2d');
-    const colors = ['#f5c842','#ffb347','#6c9cff','#34d99e','#ff6b7a','#ffffff','#a78bff'];
-    const count = autoMode ? 100 : 70;
-    const particles = [];
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (confettiRAF) cancelAnimationFrame(confettiRAF);
 
+    const colors = ['#f5c842','#ffb347','#6c9cff','#34d99e','#ff6b7a','#ffffff','#a78bff','#5eefc0'];
+    const count = autoMode ? 90 : 70;
+    const parts = [];
     for (let i = 0; i < count; i++) {
-      const w = Math.random() * 8 + 4;
-      const h = w * (0.4 + Math.random() * 0.6);
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: -Math.random() * canvas.height * 0.5 - 10, // stagger start heights
-        vx: (Math.random() - 0.5) * 2.5,
-        vy: Math.random() * 1.5 + 0.8,   // gentle speed
+      const kind = Math.random();
+      const w = 6 + Math.random() * 7;
+      parts.push({
+        x: Math.random() * W,
+        y: -20 - Math.random() * H * 0.35,
+        delay: Math.random() * 1.6,                        // staggered release (s)
+        vx: (Math.random() - 0.5) * 30,                    // px/s
+        vy: 15 + Math.random() * 25,
+        term: 38 + Math.random() * 42,                     // terminal fall speed px/s — slow motion
+        swayAmp: 18 + Math.random() * 30, swayFreq: 0.5 + Math.random() * 0.8, swayPh: Math.random() * 6.28,
+        flip: Math.random() * 6.28, flipSpeed: 2.2 + Math.random() * 3.2,
+        rot: Math.random() * 6.28, rotSpeed: (Math.random() - 0.5) * 2.4,
+        w, h: kind < 0.7 ? w * (0.45 + Math.random() * 0.25) : 2.2,
+        shape: kind < 0.7 ? 'sheet' : kind < 0.88 ? 'ribbon' : 'sequin',
         color: colors[Math.floor(Math.random() * colors.length)],
-        w, h,
-        rotation: Math.random() * 360,
-        rotV: (Math.random() - 0.5) * 3,
         alpha: 1,
-        wobble: Math.random() * Math.PI * 2,
-        wobbleSpeed: 0.04 + Math.random() * 0.03,
-        shape: Math.random() > 0.45 ? 'rect' : Math.random() > 0.5 ? 'circle' : 'strip'
       });
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let last = performance.now(), elapsed = 0;
+    function draw(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now; elapsed += dt;
+      ctx.clearRect(0, 0, W, H);
       let alive = false;
-      for (const p of particles) {
-        p.wobble += p.wobbleSpeed;
-        p.vx += Math.sin(p.wobble) * 0.05;    // gentle side sway
-        p.x  += p.vx;
-        p.y  += p.vy;
-        p.vy += 0.06;                          // low gravity = slow fall
-        p.rotation += p.rotV;
-        // Fade only near bottom
-        if (p.y > canvas.height * 0.75) p.alpha -= 0.018;
-        if (p.alpha > 0 && p.y < canvas.height + 20) {
-          alive = true;
-          ctx.save();
-          ctx.globalAlpha = Math.max(0, p.alpha);
-          ctx.translate(p.x, p.y);
-          ctx.rotate((p.rotation * Math.PI) / 180);
-          ctx.fillStyle = p.color;
-          if (p.shape === 'rect') {
-            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-          } else if (p.shape === 'circle') {
-            ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill();
-          } else {
-            ctx.fillRect(-p.w / 2, -1.5, p.w, 3);
+      for (const p of parts) {
+        if (elapsed < p.delay) { alive = true; continue; }
+        const t = elapsed - p.delay;
+        // gravity toward a low terminal velocity, plus gentle drag on drift
+        p.vy += (p.term - p.vy) * Math.min(1, dt * 1.6);
+        p.vx *= 1 - Math.min(1, dt * 0.8);
+        const sway = Math.sin(t * p.swayFreq * 6.28 + p.swayPh) * p.swayAmp;
+        p.y += p.vy * dt;
+        p.x += (p.vx + sway * 0.9) * dt;
+        p.flip += p.flipSpeed * dt;
+        p.rot += p.rotSpeed * dt + Math.cos(t * p.swayFreq * 6.28 + p.swayPh) * 0.6 * dt;
+        if (p.y > H * 0.8) p.alpha -= dt * 0.9;
+        if (p.alpha <= 0 || p.y > H + 30) continue;
+        alive = true;
+
+        const face = Math.cos(p.flip);                     // −1..1 → which side faces us
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha) * (0.75 + 0.25 * Math.abs(face));
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        if (p.shape === 'sequin') {
+          ctx.scale(1, Math.max(0.15, Math.abs(face)));
+          ctx.beginPath(); ctx.arc(0, 0, p.w * 0.35, 0, 6.283); ctx.fill();
+        } else if (p.shape === 'ribbon') {
+          // a curling strip: a short wave drawn along its length
+          ctx.strokeStyle = p.color; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+          ctx.beginPath();
+          for (let k = 0; k <= 6; k++) {
+            const xx = -p.w + (k / 6) * p.w * 2;
+            const yy = Math.sin(k * 1.1 + p.flip) * 2.6;
+            k ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy);
           }
-          ctx.restore();
+          ctx.stroke();
+        } else {
+          ctx.scale(1, Math.max(0.08, Math.abs(face)));
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          if (face < 0) { ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+          else { ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * 0.35); }
         }
+        ctx.restore();
       }
-      if (alive) requestAnimationFrame(draw);
-      else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (alive) confettiRAF = requestAnimationFrame(draw);
+      else { ctx.clearRect(0, 0, W, H); confettiRAF = null; }
     }
-    draw();
+    confettiRAF = requestAnimationFrame(draw);
     if (!autoMode) showToast('Keep earning! 🎉');
   }
 
-  // ── OCEAN WAVE ANIMATION (flowing water under the ship) ─────────
-  // Built from a sine function sampled across the viewBox width, with a
-  // continuously-increasing phase offset. Since sin() is perfectly periodic,
-  // wrapping the phase (time % anything) never creates a visible seam —
-  // the shape only ever depends on (x + phase), so motion is truly seamless.
+  // ── OCEAN + SHIP ANIMATION ───────────────────────────────────────
+  // Each water layer is a sum of three sine swells with unrelated wavelengths
+  // and speeds, so the surface never visibly repeats; the crests are slightly
+  // sharpened (trochoid-like) which reads as real water rather than a ribbon.
+  // Waves travel toward the stern (left) because the ship sails right.
+  // The ship rides the near-surface: it heaves with the water under its
+  // midship and pitches with the local slope. Once the voyage is over (or not
+  // started) the engine is off: no smoke, prop stops, and the sea calms.
   let oceanRAF = null;
-  function buildWavePath(phase, baseY, amplitude, width, height, wavelength) {
-    const step = 8;
-    let d = `M0,${(baseY + amplitude * Math.sin(phase)).toFixed(2)}`;
-    for (let x = 0; x <= width; x += step) {
-      const y = baseY + amplitude * Math.sin((x / wavelength) + phase);
-      d += ` L${x},${y.toFixed(2)}`;
+  const SHIP_SCALE = 1.3;
+  const SEA = {
+    far:  { base: 58, swells: [[3.2, 46, 0.55], [1.6, 23, -0.9], [0.8, 11, 1.4]] },
+    mid:  { base: 70, swells: [[3.6, 58, 0.75], [1.8, 27, -1.1], [0.9, 13, 1.7]] },
+    near: { base: 75.5, swells: [[2.6, 64, 0.95], [1.3, 31, -1.3], [0.6, 15, 2.1]] },
+  };
+  function seaY(layer, x, t, calm) {
+    let y = layer.base;
+    for (const [amp, len, speed] of layer.swells) {
+      const s = Math.sin(x / len + t * speed * (calm ? 0.45 : 1) + len);
+      // sharpen crests (negative y is up): peaks narrow, troughs broaden
+      y -= amp * (calm ? 0.55 : 1) * (s > 0 ? Math.pow(s, 1.35) : s * 0.85);
     }
-    d += ` L${width},${height} L0,${height} Z`;
-    return d;
+    return y;
+  }
+  function seaPath(layer, t, calm, closed) {
+    let d = '';
+    for (let x = -4; x <= 404; x += 6) {
+      d += (d ? ' L' : 'M') + x + ',' + seaY(layer, x, t, calm).toFixed(2);
+    }
+    return closed ? d + ' L404,128 L-4,128 Z' : d;
   }
   function animateOcean() {
-    const back = document.getElementById('waveBack');
-    const front = document.getElementById('waveFront');
-    if (!back || !front) { oceanRAF = null; return; }
+    if (!document.getElementById('waveFar')) { oceanRAF = null; return; }
     const t0 = performance.now();
-    function frame(t) {
-      const back2 = document.getElementById('waveBack');
-      const front2 = document.getElementById('waveFront');
-      if (!back2 || !front2) { oceanRAF = null; return; }
-      const time = (t - t0) / 1000;
-      // gentle natural flow speed — phase increases forever, no reset ever needed
-      // shorter wavelength = smaller, choppier, more realistic water ripples
-      back2.setAttribute('d', buildWavePath(time * 1.3, 64, 5, 400, 128, 26));
-      front2.setAttribute('d', buildWavePath(time * 1.9 + 1.4, 80, 4.5, 400, 128, 19));
+    function frame(now) {
+      const far = document.getElementById('waveFar');
+      if (!far) { oceanRAF = null; return; }
+      const t = (now - t0) / 1000;
+      const calm = !!document.querySelector('.ocean-wrap.ship-stopped');
+      far.setAttribute('d', seaPath(SEA.far, t, calm, true));
+      const mid = seaPath(SEA.mid, t, calm, false);
+      document.getElementById('waveMid').setAttribute('d', mid + ' L404,128 L-4,128 Z');
+      document.getElementById('crestMid').setAttribute('d', mid);
+      const near = seaPath(SEA.near, t, calm, false);
+      document.getElementById('waveNear').setAttribute('d', near + ' L404,128 L-4,128 Z');
+      document.getElementById('crestNear').setAttribute('d', near);
+
+      // Ship rides the surface: heave from midship, pitch from bow/stern levels.
+      const grp = document.getElementById('shipGroup');
+      const bob = document.getElementById('shipBob');
+      if (grp && bob) {
+        const sx = parseFloat(grp.dataset.x) || 0;
+        const mid = sx + 35 * SHIP_SCALE;
+        const yMid = seaY(SEA.near, mid, t, calm);
+        const ySt = seaY(SEA.near, mid - 28, t, calm), yBw = seaY(SEA.near, mid + 28, t, calm);
+        const pitch = Math.atan2(yBw - ySt, 56) * 180 / Math.PI * 0.55;
+        // local waterline is y=33.4 (top of the red boot-top)
+        bob.setAttribute('transform', `translate(0,${(yMid - 33.4 * SHIP_SCALE + 0.8).toFixed(2)}) rotate(${pitch.toFixed(2)} ${35 * SHIP_SCALE} ${33 * SHIP_SCALE}) scale(${SHIP_SCALE})`);
+      }
       oceanRAF = requestAnimationFrame(frame);
     }
     oceanRAF = requestAnimationFrame(frame);
@@ -1936,7 +2433,7 @@
   ];
   const MOOD_STORE_KEY = 'det_mood_log'; // { "YYYY-MM-DD": { moodId, text, stress, loggedAt } }
   let selectedMoodId = null;
-  let selectedStress = 3;
+  let selectedStress = 2;
   let moodHistoryView = 'mood'; // 'mood' | 'stress'
 
   function todayKey(d) {
@@ -1950,6 +2447,23 @@
   }
   function saveMoodLog(log) { localStorage.setItem(MOOD_STORE_KEY, JSON.stringify(log)); }
   function getMoodEntry(key) { return loadMoodLog()[key] || null; }
+
+  // One-time migration: stress used to be 1–5 where 1 really meant "no
+  // stress". The scale is now 0–5, so every entry logged before this version
+  // moves down one point (1→0 … 5→4). Guarded by a flag so it runs only once.
+  function migrateStressScale() {
+    const FLAG = 'det_mood_stress_scale0';
+    try {
+      if (localStorage.getItem(FLAG)) return;
+      const log = loadMoodLog();
+      for (const k of Object.keys(log)) {
+        const v = Number(log[k].stress);
+        log[k].stress = Number.isFinite(v) ? Math.max(0, Math.min(5, v - 1)) : 0;
+      }
+      saveMoodLog(log);
+      localStorage.setItem(FLAG, '1');
+    } catch (e) {}
+  }
 
   // ── Evening popup trigger: after 5 PM, once per day, only if not yet logged ──
   function maybeShowEveningMoodPopup() {
@@ -1971,9 +2485,11 @@
 
   function renderStressDots() {
     const wrap = document.getElementById('stressDots');
-    wrap.innerHTML = [1,2,3,4,5].map(n => `
-      <div class="stress-dot${selectedStress === n ? ' selected' : ''}" onclick="selectStress(${n})">${n}</div>
+    wrap.innerHTML = [0,1,2,3,4,5].map(n => `
+      <div class="stress-dot${selectedStress === n ? ' selected' : ''}" style="--sc:${stressColor(n)}" onclick="selectStress(${n})">${n}</div>
     `).join('');
+    const hint = document.getElementById('stressHint');
+    if (hint) { const l = stressLevel(selectedStress); hint.textContent = `${l.emoji} ${l.label} stress`; hint.style.color = l.color; }
   }
 
   function selectMood(id) {
@@ -1993,7 +2509,7 @@
     const key = todayKey();
     const existing = getMoodEntry(key);
     selectedMoodId = existing ? existing.moodId : null;
-    selectedStress = existing ? existing.stress : 3;
+    selectedStress = existing ? existing.stress : 2;
     document.getElementById('moodModalSub').textContent = isAutoPopup
       ? "It's evening — how did today go?"
       : 'Log your mood for the day';
@@ -2019,8 +2535,17 @@
     renderDash();
   }
 
-  // ── Mood history graph ──────────────────────────────────────────
+  // ── Mood history: scrollable timeline + monthly / contract stats ─────────
+  // The timeline covers every logged day (at least the last 30), scrolls
+  // horizontally and opens on today, so earlier months are a swipe away.
+  // Tap any day for its details. Below it, the stats panel shows how the
+  // month (or the whole contract) split across moods and stress levels.
+  let moodStatsScope = 'month';       // 'month' | 'contract'
+  let moodStatsMonth = null;          // Date — first of the month being viewed
+
   function openMoodHistoryModal() {
+    const n = new Date();
+    moodStatsMonth = new Date(n.getFullYear(), n.getMonth(), 1);
     document.getElementById('moodHistoryModal').classList.add('open');
     renderMoodChart();
   }
@@ -2033,9 +2558,25 @@
     document.getElementById('histBtnStress').classList.toggle('active', view === 'stress');
     renderMoodChart();
   }
+  function setMoodStatsScope(scope) { moodStatsScope = scope; renderMoodStats(); }
+  function shiftMoodStatsMonth(delta) {
+    moodStatsMonth = new Date(moodStatsMonth.getFullYear(), moodStatsMonth.getMonth() + delta, 1);
+    renderMoodStats();
+  }
 
   const MOOD_SCORE = { sad: 1, exhausted: 2, normal: 3, other: 3, happy: 4, excited: 5 };
   const MOOD_COLORS = { sad: '#ff6b7a', exhausted: '#ffb347', normal: '#6c9cff', other: '#a78bff', happy: '#34d99e', excited: '#f5c842' };
+  // Stress 0–5: Low 0-1, Medium 2-3, High 4-5
+  const STRESS_LEVELS = [
+    { id: 'low',  label: 'Low',    emoji: '😌', color: '#34d99e', min: 0, max: 1 },
+    { id: 'mid',  label: 'Medium', emoji: '😬', color: '#ffb347', min: 2, max: 3 },
+    { id: 'high', label: 'High',   emoji: '🤯', color: '#ff6b7a', min: 4, max: 5 },
+  ];
+  function stressLevel(v) { return STRESS_LEVELS.find(l => v >= l.min && v <= l.max) || STRESS_LEVELS[0]; }
+  function stressColor(v) { return ['#34d99e', '#7fdc8a', '#c8d65c', '#ffb347', '#ff8a5b', '#ff6b7a'][Math.max(0, Math.min(5, Math.round(v)))]; }
+  function moodMeta(id) { return MOOD_OPTIONS.find(m => m.id === id) || MOOD_OPTIONS[2]; }
+  function moodLabel(entry) { return entry.moodId === 'other' ? (entry.text || 'Other') : moodMeta(entry.moodId).label; }
+  function escHtml(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
 
   // ── SMOOTH CURVE ────────────────────────────────────────────────
   // Cubic Bézier through every point, with tangents chosen the *monotone*
@@ -2088,96 +2629,334 @@
     return d;
   }
 
+
   function renderMoodChart() {
     const container = document.getElementById('moodChartContainer');
     const log = loadMoodLog();
-    const days = [];
+    const keys = Object.keys(log).sort();
     const now = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-      const key = todayKey(d);
-      days.push({ date: d, key, entry: log[key] || null });
-    }
-    const loggedDays = days.filter(d => d.entry);
-    if (loggedDays.length === 0) {
+    const today = dayStart(now);
+    if (keys.length === 0) {
       container.innerHTML = `<div class="mood-chart-empty">No mood entries yet. Log today's mood to start seeing trends here. 📈</div>`;
+      document.getElementById('moodHistorySub').textContent = 'Log a mood to begin';
+      return;
+    }
+    // Range: earliest log (or 30 days back, whichever is earlier) → today
+    let first = parseLocalDate(keys[0]);
+    const min30 = new Date(today); min30.setDate(min30.getDate() - 29);
+    if (first > min30) first = min30;
+    const days = [];
+    for (let d = new Date(first); d <= today; d.setDate(d.getDate() + 1)) {
+      const key = todayKey(d);
+      days.push({ date: new Date(d), key, entry: log[key] || null });
+    }
+    const logged = days.filter(d => d.entry).length;
+    document.getElementById('moodHistorySub').textContent =
+      `${logged} day${logged === 1 ? '' : 's'} logged · swipe back for earlier months`;
+
+    const isMood = moodHistoryView === 'mood';
+    const STEP = 18, padL = 34, padR = 18, padT = 26, padB = 26, H = 200;
+    const W = padL + padR + (days.length - 1) * STEP;
+    const plotH = H - padT - padB;
+    const [minV, maxV] = isMood ? [1, 5] : [0, 5];
+    const yFor = v => padT + (1 - (v - minV) / (maxV - minV)) * plotH;
+    const xFor = i => padL + i * STEP;
+    const val = en => isMood ? (MOOD_SCORE[en.moodId] || 3) : en.stress;
+
+    const pts = [];
+    let dots = '', hits = '', months = '', labels = '';
+    days.forEach((d, i) => {
+      const x = xFor(i);
+      if (d.date.getDate() === 1 || i === 0) {
+        const name = d.date.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }).toUpperCase();
+        if (d.date.getDate() === 1) months += `<line x1="${x}" y1="${padT - 14}" x2="${x}" y2="${H - padB}" class="mc-month-line"/>`;
+        months += `<text x="${x + 4}" y="${padT - 16}" class="mc-month">${name}</text>`;
+      }
+      if (d.date.getDate() % 5 === 0 || i === days.length - 1) {
+        labels += `<text x="${x}" y="${H - 8}" class="mc-day${i === days.length - 1 ? ' today' : ''}">${i === days.length - 1 ? 'Today' : d.date.getDate()}</text>`;
+      }
+      hits += `<rect class="mc-hit" data-i="${i}" x="${x - STEP / 2}" y="0" width="${STEP}" height="${H}"/>`;
+      if (!d.entry) return;
+      const v = val(d.entry), y = yFor(v);
+      pts.push({ x, y });
+      const color = isMood ? (MOOD_COLORS[d.entry.moodId] || '#6c9cff') : stressColor(v);
+      dots += `<circle class="mc-dot" data-i="${i}" cx="${x}" cy="${y.toFixed(1)}" r="4" fill="${color}"/>`;
+    });
+    const line = smoothPath(pts);
+    const area = pts.length > 1 ? `${line} L${pts[pts.length - 1].x},${H - padB} L${pts[0].x},${H - padB} Z` : '';
+
+    let grid = '', axis = '';
+    for (let v = minV; v <= maxV; v++) {
+      grid += `<line x1="0" y1="${yFor(v)}" x2="${W}" y2="${yFor(v)}" class="mc-grid"/>`;
+      const lbl = isMood ? MOOD_OPTIONS.find(m => MOOD_SCORE[m.id] === v && m.id !== 'other').emoji : v;
+      axis += `<div class="mc-axis-lbl${isMood ? ' emoji' : ''}" style="top:${yFor(v)}px">${lbl}</div>`;
+    }
+
+    const strokeGrad = isMood
+      ? `<linearGradient id="mcStroke" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5c842"/><stop offset="50%" stop-color="#6c9cff"/><stop offset="100%" stop-color="#ff6b7a"/></linearGradient>`
+      : `<linearGradient id="mcStroke" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff6b7a"/><stop offset="50%" stop-color="#ffb347"/><stop offset="100%" stop-color="#34d99e"/></linearGradient>`;
+
+    container.innerHTML = `
+      <div class="mc-wrap">
+        <div class="mc-tip" id="mcTip"></div>
+        <div class="mc-axis">${axis}</div>
+        <div class="mood-chart-wrap" id="mcScroll">
+          <svg class="mood-chart-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+            <defs>
+              ${strokeGrad}
+              <linearGradient id="mcArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${isMood ? '#34d99e' : '#ffb347'}" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="${isMood ? '#6c9cff' : '#34d99e'}" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            ${grid}${months}
+            <path d="${area}" fill="url(#mcArea)" class="mc-area"/>
+            <path d="${line}" fill="none" stroke="url(#mcStroke)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" class="mc-line" pathLength="1"/>
+            <line id="mcCursor" class="mc-cursor" x1="0" y1="${padT - 6}" x2="0" y2="${H - padB}"/>
+            ${dots}${labels}${hits}
+          </svg>
+        </div>
+      </div>
+      <div class="mood-legend">
+        ${isMood
+          ? MOOD_OPTIONS.filter(m => m.id !== 'other').map(m => `<div class="mood-legend-item"><span class="mood-legend-dot" style="background:${MOOD_COLORS[m.id]}"></span>${m.emoji} ${m.label}</div>`).join('')
+          : STRESS_LEVELS.map(l => `<div class="mood-legend-item"><span class="mood-legend-dot" style="background:${l.color}"></span>${l.emoji} ${l.label} (${l.min}–${l.max})</div>`).join('')}
+      </div>
+      <div id="moodStats"></div>`;
+
+    // Open on today; earlier months are a swipe to the left.
+    const sc = document.getElementById('mcScroll');
+    sc.scrollLeft = sc.scrollWidth;
+
+    // Tap / hover a day → tooltip with its date, mood and stress.
+    const svg = sc.querySelector('svg');
+    const tip = document.getElementById('mcTip');
+    const cursor = document.getElementById('mcCursor');
+    let pinned = null;
+    function show(i) {
+      const d = days[i]; if (!d) return;
+      const x = xFor(i);
+      cursor.setAttribute('x1', x); cursor.setAttribute('x2', x); cursor.classList.add('on');
+      svg.querySelectorAll('.mc-dot.sel').forEach(c => c.classList.remove('sel'));
+      const dot = svg.querySelector(`.mc-dot[data-i="${i}"]`); if (dot) dot.classList.add('sel');
+      const date = d.date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      if (d.entry) {
+        const m = moodMeta(d.entry.moodId), lv = stressLevel(d.entry.stress);
+        tip.innerHTML = `<div class="mc-tip-date">${date}</div>
+          <div class="mc-tip-row"><span class="mc-tip-emoji">${m.emoji}</span><b>${escHtml(moodLabel(d.entry))}</b></div>
+          <div class="mc-tip-row"><span class="mc-tip-dot" style="background:${stressColor(d.entry.stress)}"></span>Stress ${d.entry.stress}/5 · ${lv.label}</div>`;
+      } else {
+        tip.innerHTML = `<div class="mc-tip-date">${date}</div><div class="mc-tip-row muted">Not logged</div>`;
+      }
+      const wrapW = tip.parentElement.clientWidth;
+      const left = x - sc.scrollLeft;
+      tip.style.left = Math.max(8, Math.min(wrapW - tip.offsetWidth - 8, left - tip.offsetWidth / 2)) + 'px';
+      tip.classList.add('on');
+    }
+    function hide() { if (pinned !== null) return; tip.classList.remove('on'); cursor.classList.remove('on'); }
+    svg.addEventListener('pointermove', ev => { const r = ev.target.closest('.mc-hit'); if (r && pinned === null) show(+r.dataset.i); });
+    svg.addEventListener('pointerleave', hide);
+    svg.addEventListener('click', ev => {
+      const r = ev.target.closest('.mc-hit'); if (!r) return;
+      const i = +r.dataset.i;
+      if (pinned === i) { pinned = null; hide(); } else { pinned = i; show(i); }
+    });
+    sc.addEventListener('scroll', () => { if (pinned !== null) show(pinned); else hide(); }, { passive: true });
+    // Show the latest logged day straight away so the chart never looks inert.
+    for (let i = days.length - 1; i >= 0; i--) if (days[i].entry) { pinned = i; show(i); break; }
+
+    renderMoodStats();
+  }
+
+  // ── Stats: mood split, stress split, comparison, month-by-month ──
+  function moodStatsFor(log, from, to) {
+    const res = { n: 0, moods: {}, stress: { low: 0, mid: 0, high: 0 }, stressSum: 0 };
+    for (const [k, en] of Object.entries(log)) {
+      const d = parseLocalDate(k);
+      if (d < from || d > to) continue;
+      res.n++;
+      res.moods[en.moodId] = (res.moods[en.moodId] || 0) + 1;
+      res.stress[stressLevel(en.stress).id]++;
+      res.stressSum += en.stress;
+    }
+    res.avgStress = res.n ? res.stressSum / res.n : 0;
+    const pct = c => res.n ? (c / res.n) * 100 : 0;
+    res.moodPct = Object.fromEntries(MOOD_OPTIONS.map(m => [m.id, pct(res.moods[m.id] || 0)]));
+    res.stressPct = { low: pct(res.stress.low), mid: pct(res.stress.mid), high: pct(res.stress.high) };
+    return res;
+  }
+  function monthRange(d) { return [new Date(d.getFullYear(), d.getMonth(), 1), new Date(d.getFullYear(), d.getMonth() + 1, 0)]; }
+  function roundPcts(obj, ids) {
+    // largest-remainder rounding so the shown percentages always add up to 100
+    const raw = ids.map(id => ({ id, v: obj[id] || 0 }));
+    const floor = raw.map(r => ({ ...r, f: Math.floor(r.v), rem: r.v - Math.floor(r.v) }));
+    let left = Math.round(raw.reduce((a, r) => a + r.v, 0)) - floor.reduce((a, r) => a + r.f, 0);
+    floor.sort((a, b) => b.rem - a.rem).forEach(r => { if (left > 0) { r.f++; left--; } });
+    return Object.fromEntries(floor.map(r => [r.id, r.f]));
+  }
+
+  function donutSvg(st, ids) {
+    const R = 46, C = 2 * Math.PI * R;
+    let off = 0, segs = '';
+    ids.forEach(id => {
+      const p = st.moodPct[id] / 100;
+      if (p <= 0) return;
+      const len = Math.max(p * C - 2, 0.5);
+      segs += `<circle class="dn-seg" data-id="${id}" cx="60" cy="60" r="${R}" fill="none" stroke="${MOOD_COLORS[id]}" stroke-width="14"
+                 stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" stroke-linecap="round"/>`;
+      off += p * C;
+    });
+    return `<svg class="donut" viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" fill="none" class="dn-track" stroke-width="14"/>
+      <g transform="rotate(-90 60 60)">${segs}</g></svg>`;
+  }
+
+  function renderMoodStats() {
+    const box = document.getElementById('moodStats');
+    if (!box) return;
+    const log = loadMoodLog();
+    const s = state.settings;
+    let from, to, title, prev = null;
+    if (moodStatsScope === 'month') {
+      [from, to] = monthRange(moodStatsMonth);
+      title = moodStatsMonth.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+      const [pf, pt] = monthRange(new Date(moodStatsMonth.getFullYear(), moodStatsMonth.getMonth() - 1, 1));
+      prev = moodStatsFor(log, pf, pt);
+    } else {
+      const keys = Object.keys(log).sort();
+      from = s ? parseLocalDate(s.startDate) : (keys.length ? parseLocalDate(keys[0]) : new Date());
+      const totalDays = s ? (s.contractDays || (s.contractMonths ? s.contractMonths * 30 : 0)) : 0;
+      to = new Date(from); to.setDate(to.getDate() + Math.max(totalDays - 1, 0));
+      if (!s) to = new Date();
+      title = 'Whole contract';
+    }
+    const st = moodStatsFor(log, from, to);
+    const ids = MOOD_OPTIONS.map(m => m.id).filter(id => st.moods[id]);
+    const mp = roundPcts(st.moodPct, ids);
+    const sp = roundPcts(st.stressPct, ['low', 'mid', 'high']);
+    const top = ids.slice().sort((a, b) => st.moods[b] - st.moods[a])[0];
+    const nowMonth = new Date(); nowMonth.setDate(1);
+    const canNext = moodStatsScope === 'month' && moodStatsMonth < new Date(nowMonth.getFullYear(), nowMonth.getMonth(), 1);
+
+    let html = `
+      <div class="ms-head">
+        <div class="ms-scope">
+          <button class="${moodStatsScope === 'month' ? 'active' : ''}" onclick="setMoodStatsScope('month')">Month</button>
+          <button class="${moodStatsScope === 'contract' ? 'active' : ''}" onclick="setMoodStatsScope('contract')">Contract</button>
+        </div>
+        ${moodStatsScope === 'month' ? `
+        <div class="ms-month">
+          <button onclick="shiftMoodStatsMonth(-1)" aria-label="Previous month">‹</button>
+          <span>${title}</span>
+          <button onclick="shiftMoodStatsMonth(1)" ${canNext ? '' : 'disabled'} aria-label="Next month">›</button>
+        </div>` : `<div class="ms-month"><span>${from.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })} → ${to.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}</span></div>`}
+      </div>`;
+
+    if (!st.n) {
+      box.innerHTML = html + `<div class="mood-chart-empty">No moods logged in this period.</div>`;
       return;
     }
 
-    const width = Math.max(340, days.length * 14);
-    const height = 180;
-    const padTop = 16, padBottom = 24, padLeft = 8, padRight= 8;
-    const plotH = height - padTop - padBottom;
-    const stepX = (width - padLeft - padRight) / (days.length - 1);
+    // Mood split — donut + list
+    html += `
+      <div class="ms-card">
+        <div class="ms-card-title">Mood split <span>${st.n} day${st.n === 1 ? '' : 's'} logged</span></div>
+        <div class="ms-mood">
+          <div class="donut-wrap">
+            ${donutSvg(st, ids)}
+            <div class="donut-center" id="donutCenter">
+              <div class="dc-emoji">${moodMeta(top).emoji}</div>
+              <div class="dc-pct">${mp[top]}%</div>
+              <div class="dc-lbl">${moodMeta(top).label}</div>
+            </div>
+          </div>
+          <div class="ms-list">
+            ${ids.sort((a, b) => st.moods[b] - st.moods[a]).map(id => `
+              <div class="ms-row" data-id="${id}">
+                <span class="ms-emoji">${moodMeta(id).emoji}</span>
+                <span class="ms-name">${moodMeta(id).label}</span>
+                <span class="ms-bar"><i style="width:${mp[id]}%;background:${MOOD_COLORS[id]}"></i></span>
+                <span class="ms-pct">${mp[id]}%</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
 
-    function valueFor(entry) {
-      if (!entry) return null;
-      return moodHistoryView === 'mood' ? MOOD_SCORE[entry.moodId] || 3 : entry.stress;
+    // Stress split — stacked bar + average
+    const lvAvg = stressLevel(Math.round(st.avgStress));
+    html += `
+      <div class="ms-card">
+        <div class="ms-card-title">Stress split <span>avg ${st.avgStress.toFixed(1)}/5 ${lvAvg.emoji}</span></div>
+        <div class="ms-stack">
+          ${STRESS_LEVELS.map(l => sp[l.id] > 0 ? `<i style="width:${sp[l.id]}%;background:${l.color}" title="${l.label} ${sp[l.id]}%"></i>` : '').join('')}
+        </div>
+        <div class="ms-stress-legend">
+          ${STRESS_LEVELS.map(l => `
+            <div class="ms-sl"><span class="ms-sl-pct" style="color:${l.color}">${sp[l.id]}%</span><span class="ms-sl-lbl">${l.emoji} ${l.label}</span></div>`).join('')}
+        </div>
+      </div>`;
+
+    // vs previous month
+    if (prev && prev.n) {
+      const chips = [];
+      const delta = (a, b) => Math.round(a - b);
+      ['excited', 'happy', 'normal', 'exhausted', 'sad'].forEach(id => {
+        const d = delta(st.moodPct[id], prev.moodPct[id]);
+        if (d !== 0) chips.push({ txt: `${moodMeta(id).emoji} ${moodMeta(id).label}`, d, good: (MOOD_SCORE[id] >= 4) === (d > 0) });
+      });
+      const hd = delta(st.stressPct.high, prev.stressPct.high);
+      if (hd !== 0) chips.push({ txt: '🤯 High stress', d: hd, good: hd < 0 });
+      const prevName = new Date(moodStatsMonth.getFullYear(), moodStatsMonth.getMonth() - 1, 1).toLocaleDateString('en-IN', { month: 'short' });
+      html += `
+        <div class="ms-card">
+          <div class="ms-card-title">vs ${prevName} <span>stress ${prev.avgStress.toFixed(1)} → ${st.avgStress.toFixed(1)}</span></div>
+          <div class="ms-chips">
+            ${chips.length ? chips.map(c => `<span class="ms-chip ${c.good ? 'good' : 'bad'}">${c.txt} ${c.d > 0 ? '▲' : '▼'} ${Math.abs(c.d)}%</span>`).join('') : '<span class="ms-chip">Same as last month</span>'}
+          </div>
+        </div>`;
     }
-    const maxVal = 5, minVal = 1;
-    function yFor(v) { return padTop + (1 - (v - minVal) / (maxVal - minVal)) * plotH; }
 
-    // Collect the logged points, then draw them as a SMOOTH curve.
-    const pts = [];
-    const dots = [];
-    days.forEach((d, i) => {
-      const v = valueFor(d.entry);
-      if (v === null) return;
-      const x = padLeft + i * stepX;
-      const y = yFor(v);
-      pts.push({ x, y });
-      const color = moodHistoryView === 'mood' ? (MOOD_COLORS[d.entry.moodId] || '#6c9cff') : '#6c9cff';
-      dots.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg2)" stroke-width="1.5"/>`);
-    });
-    const pathD = smoothPath(pts);
-
-    // Gridlines
-    let gridLines = '';
-    for (let v = minVal; v <= maxVal; v++) {
-      const y = yFor(v);
-      gridLines += `<line x1="${padLeft}" y1="${y}" x2="${width-padRight}" y2="${y}" stroke="var(--glass-border)" stroke-width="1"/>`;
-    }
-
-    // Date labels — every ~5 days
-    let labels = '';
-    days.forEach((d, i) => {
-      if (i % 5 === 0 || i === days.length - 1) {
-        const x = padLeft + i * stepX;
-        labels += `<text x="${x}" y="${height-6}" font-size="8" fill="var(--text-muted)" text-anchor="middle" font-family="var(--font-mono)">${d.date.getDate()}/${d.date.getMonth()+1}</text>`;
+    // Month-by-month (contract scope)
+    if (moodStatsScope === 'contract') {
+      const months = [];
+      for (let m = new Date(from.getFullYear(), from.getMonth(), 1); m <= to && m <= new Date(); m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
+        const [a, b] = monthRange(m);
+        months.push({ m, st: moodStatsFor(log, a < from ? from : a, b > to ? to : b) });
       }
-    });
+      html += `
+        <div class="ms-card">
+          <div class="ms-card-title">Month by month <span>tap a month</span></div>
+          <div class="ms-months">
+            ${months.map(({ m, st: x }) => `
+              <button class="ms-mcol" onclick="moodStatsScope='month'; moodStatsMonth=new Date(${m.getFullYear()},${m.getMonth()},1); renderMoodStats();">
+                <div class="ms-mbar">
+                  ${x.n ? ['excited', 'happy', 'normal', 'other', 'exhausted', 'sad'].map(id => x.moodPct[id] > 0 ? `<i style="height:${x.moodPct[id]}%;background:${MOOD_COLORS[id]}"></i>` : '').join('') : '<i class="empty" style="height:100%"></i>'}
+                </div>
+                <div class="ms-mstress" style="color:${x.n ? stressColor(x.avgStress) : 'var(--text-muted)'}">${x.n ? x.avgStress.toFixed(1) : '–'}</div>
+                <div class="ms-mlbl">${m.toLocaleDateString('en-IN', { month: 'short' })}</div>
+              </button>`).join('')}
+          </div>
+          <div class="ms-note">Bars = mood split · number = average stress</div>
+        </div>`;
+    }
 
-    const gradientId = 'moodLineGrad';
-    container.innerHTML = `
-      <div class="mood-chart-wrap">
-        <svg class="mood-chart-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-          <defs>
-            <linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="var(--sapphire)"/>
-              <stop offset="100%" stop-color="var(--emerald)"/>
-            </linearGradient>
-          </defs>
-          ${gridLines}
-          <path d="${pathD}" fill="none" stroke="url(#${gradientId})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-          ${dots.join('')}
-          ${labels}
-        </svg>
-      </div>
-      ${moodHistoryView === 'mood' ? `
-      <div class="mood-legend">
-        ${MOOD_OPTIONS.filter(m => m.id !== 'other').map(m => `
-          <div class="mood-legend-item"><span class="mood-legend-dot" style="background:${MOOD_COLORS[m.id]}"></span>${m.emoji} ${m.label}</div>
-        `).join('')}
-      </div>` : `
-      <div class="mood-legend">
-        <div class="mood-legend-item">1 = Low stress · 5 = High stress</div>
-      </div>`}
-    `;
+    box.innerHTML = html;
+    const scroller = box.querySelector('.ms-months');
+    if (scroller) scroller.scrollLeft = scroller.scrollWidth;
+
+    // Donut ↔ list: tap a slice or row to see its share in the centre.
+    const center = document.getElementById('donutCenter');
+    const focus = id => {
+      center.innerHTML = `<div class="dc-emoji">${moodMeta(id).emoji}</div><div class="dc-pct">${mp[id]}%</div><div class="dc-lbl">${moodMeta(id).label}</div>`;
+      box.querySelectorAll('.dn-seg').forEach(c => c.classList.toggle('dim', c.dataset.id !== id));
+      box.querySelectorAll('.ms-row').forEach(r => r.classList.toggle('sel', r.dataset.id === id));
+    };
+    box.querySelectorAll('.dn-seg, .ms-row').forEach(el => el.addEventListener('click', () => focus(el.dataset.id)));
   }
 
   // ── INIT ───────────────────────────────────────────────────────
   function init() {
     loadState();
+    migrateStressScale();
     document.documentElement.setAttribute('data-theme', state.theme);
     updateThemeIcon();
     updateGreeting();
@@ -2204,7 +2983,7 @@
     // backgrounded tab will simply miss), we remember the last state we
     // rendered and react whenever it actually changes. This is what keeps
     // "Days Done" and the biryani count honest across midnight, across the
-    // 4 PM credit, and after the device wakes from sleep.
+    // 5 PM credit, and after the device wakes from sleep.
     function boundaryKey() {
       const e = getEarnings();
       if (!e) return 'none';
