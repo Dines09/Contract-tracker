@@ -956,6 +956,14 @@
       margin-top: 9px; transition: all 0.2s;
     }
     .reset-btn:hover { background: rgba(255,107,122,0.07); }
+    .backup-note { font-size: 12px; color: var(--text-soft); line-height: 1.5; margin-bottom: 12px; }
+    .backup-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .backup-btn {
+      flex: 1 1 30%; padding: 11px 10px; border-radius: 12px; cursor: pointer;
+      border: 1px solid var(--glass-border-strong); background: var(--glass);
+      color: var(--text); font: 700 12.5px var(--font-body); white-space: nowrap;
+    }
+    .backup-btn:active { transform: scale(0.97); }
     .add-extra-btn {
       width: 100%; padding: 12px; border-radius: 13px;
       border: 1px dashed var(--glass-border-strong); background: transparent;
@@ -1190,6 +1198,17 @@
         <div class="settings-section-title">⭐ Extra Earnings (USD)</div>
         <div id="extrasList"></div>
         <button class="add-extra-btn" onclick="showAddExtraModal()">+ Add Extra Earning</button>
+      </div>
+
+      <div class="settings-section fade-up d4">
+        <div class="settings-section-title">🛟 Backup &amp; Restore</div>
+        <div class="backup-note">Your data lives only on this phone. Save a backup file before reinstalling the app or changing phones, then restore it here.</div>
+        <div class="backup-btns">
+          <button class="backup-btn" onclick="downloadBackup()">⬇ Save backup</button>
+          <button class="backup-btn" id="shareBackupBtn" onclick="shareBackup()" hidden>↗ Share backup</button>
+          <button class="backup-btn" onclick="document.getElementById('restoreFile').click()">⬆ Restore</button>
+        </div>
+        <input type="file" id="restoreFile" accept=".json,application/json" hidden onchange="restoreBackup(this)" />
       </div>
 
       <button class="save-btn fade-up d4" onclick="saveSettings()">Save & Apply</button>
@@ -2162,6 +2181,64 @@
       setTimeout(() => showPage('dash'), 500);
     }
   }
+
+  // ── BACKUP / RESTORE ──────────────────────────────────────────
+  // Everything the app keeps is in localStorage under "det_" keys, which
+  // belongs to this phone's browser. A backup is those keys in a JSON file,
+  // so the data survives reinstalling the app or moving to a new phone.
+  const BACKUP_APP = 'contract-tracker';
+  function backupFile() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('det_')) data[k] = localStorage.getItem(k);
+    }
+    const json = JSON.stringify({ app: BACKUP_APP, version: 1, savedAt: new Date().toISOString(), data }, null, 1);
+    return new File([json], `earnings-backup-${todayKey()}.json`, { type: 'application/json' });
+  }
+  function downloadBackup() {
+    const file = backupFile();
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast('Backup saved to Downloads', '🛟');
+  }
+  async function shareBackup() {
+    const file = backupFile();
+    try { await navigator.share({ files: [file], title: 'Earnings backup' }); }
+    catch (e) { if (e.name !== 'AbortError') downloadBackup(); }
+  }
+  function restoreBackup(input) {
+    const f = input.files && input.files[0];
+    input.value = '';
+    if (!f) return;
+    f.text().then(txt => {
+      let b;
+      try { b = JSON.parse(txt); } catch (e) { b = null; }
+      if (!b || b.app !== BACKUP_APP || !b.data || typeof b.data !== 'object') { showToast('Not a backup file from this app', '⚠️'); return; }
+      const keys = Object.keys(b.data).filter(k => k.startsWith('det_') && typeof b.data[k] === 'string');
+      let moods = 0;
+      try { moods = Object.keys(JSON.parse(b.data.det_mood_log || '{}')).length; } catch (e) {}
+      const when = b.savedAt ? new Date(b.savedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'unknown date';
+      if (!confirm(`Restore backup from ${when}?
+
+${moods} mood day${moods === 1 ? '' : 's'} and your contract settings will replace what is on this phone now.`)) return;
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('det_')) localStorage.removeItem(k);
+      }
+      keys.forEach(k => localStorage.setItem(k, b.data[k]));
+      showToast('Backup restored', '✅');
+      setTimeout(() => location.reload(), 700);
+    });
+  }
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [new File(['{}'], 'x.json', { type: 'application/json' })] })) {
+      document.getElementById('shareBackupBtn').hidden = false;
+    }
+  } catch (e) {}
 
   // ── NAVIGATION ─────────────────────────────────────────────────
   function showPage(page) {
