@@ -1,5 +1,5 @@
 const PREFIX = 'earnings-tracker-';
-const CACHE_VERSION = 'v1.0.3';
+const CACHE_VERSION = 'v1.0.4';
 const CACHE_NAME = `${PREFIX}${CACHE_VERSION}`;
 const ASSETS = [
   './',
@@ -7,6 +7,9 @@ const ASSETS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './icon-maskable-192.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
 ];
 // How long to wait for the network before answering from the cache. On a ship
 // the connection is often "up" but dead, and a plain fetch() then hangs.

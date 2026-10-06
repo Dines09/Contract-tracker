@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Earnings" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
   <link rel="manifest" href="manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -46,6 +46,14 @@
       --sapphire-glow: rgba(108,156,255,0.18);
       --danger: #ff6b7a;
       --shadow: rgba(0,0,0,0.55);
+      /* Chart palette — mood + stress 0–5. Light theme swaps in deeper tones. */
+      --chart-bg: var(--bg3);
+      --chart-grid: var(--glass-border);
+      --chart-track: var(--glass-border);
+      --m-excited: #f5c842; --m-happy: #34d99e; --m-normal: #6c9cff;
+      --m-other: #a78bff; --m-exhausted: #ffb347; --m-sad: #ff6b7a;
+      --s0: #34d99e; --s1: #7fdc8a; --s2: #c8d65c; --s3: #ffb347; --s4: #ff8a5b; --s5: #ff6b7a;
+      --chart-area-op: 0.28;
     }
     [data-theme="light"] {
       --bg: #f0f3ff;
@@ -68,6 +76,13 @@
       --sapphire-glow: rgba(54,96,216,0.13);
       --danger: #d42848;
       --shadow: rgba(80,100,180,0.12);
+      --chart-bg: #ffffff;
+      --chart-grid: rgba(110,125,180,0.28);
+      --chart-track: #e8ecf8;
+      --m-excited: #e6a300; --m-happy: #10a873; --m-normal: #3d6ee0;
+      --m-other: #7b5ce8; --m-exhausted: #f0821a; --m-sad: #e23d58;
+      --s0: #10a873; --s1: #4cb35a; --s2: #a3ad1f; --s3: #f0821a; --s4: #ea5f2c; --s5: #e23d58;
+      --chart-area-op: 0.20;
     }
 
     html { scroll-behavior: smooth; }
@@ -765,15 +780,15 @@
       background: linear-gradient(135deg, var(--emerald), #5eefc0);
       color: #06251b; border-radius: 30px; margin: 2px;
     }
-    .mc-wrap { position: relative; border-radius: 18px; background: var(--bg3); border: 1px solid var(--glass-border); padding-top: 54px; overflow: hidden; }
+    .mc-wrap { position: relative; border-radius: 18px; background: var(--chart-bg); border: 1px solid var(--glass-border); padding-top: 54px; overflow: hidden; }
     .mood-chart-wrap { width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .mood-chart-wrap::-webkit-scrollbar { display: none; }
     .mood-chart-svg { display: block; min-width: 100%; touch-action: pan-x; }
     .mc-axis { position: absolute; left: 0; top: 54px; bottom: 0; width: 30px; z-index: 2; pointer-events: none;
-      background: linear-gradient(90deg, var(--bg3) 70%, transparent); }
+      background: linear-gradient(90deg, var(--chart-bg) 70%, transparent); }
     .mc-axis-lbl { position: absolute; left: 6px; transform: translateY(-50%); font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
     .mc-axis-lbl.emoji { font-size: 13px; left: 5px; }
-    .mc-grid { stroke: var(--glass-border); stroke-width: 1; stroke-dasharray: 2 4; }
+    .mc-grid { stroke: var(--chart-grid); stroke-width: 1; stroke-dasharray: 2 4; }
     .mc-month-line { stroke: var(--glass-border-strong); stroke-width: 1; stroke-dasharray: 3 3; }
     .mc-month { font-family: var(--font-mono); font-size: 9px; font-weight: 700; fill: var(--gold); letter-spacing: 1px; }
     .mc-day { font-family: var(--font-mono); font-size: 8.5px; fill: var(--text-muted); text-anchor: middle; }
@@ -782,7 +797,7 @@
     @keyframes mc-draw { to { stroke-dashoffset: 0; } }
     .mc-area { opacity: 0; animation: mc-fade 1s 0.5s ease forwards; }
     @keyframes mc-fade { to { opacity: 1; } }
-    .mc-dot { stroke: var(--bg3); stroke-width: 2; transition: r 0.2s; }
+    .mc-dot { stroke: var(--chart-bg); stroke-width: 2; transition: r 0.2s; }
     .mc-dot.sel { r: 6.5; stroke: #fff; }
     .mc-hit { fill: transparent; cursor: pointer; }
     .mc-cursor { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0; transition: opacity 0.2s; }
@@ -815,13 +830,13 @@
     .ms-month { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 800; font-size: 13px; color: var(--text); }
     .ms-month button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border-strong); background: var(--glass); color: var(--text); font-size: 16px; cursor: pointer; line-height: 1; }
     .ms-month button:disabled { opacity: 0.3; cursor: default; }
-    .ms-card { border-radius: 18px; background: var(--bg3); border: 1px solid var(--glass-border); padding: 14px; margin-bottom: 10px; animation: fadeUp 0.45s ease both; }
+    .ms-card { border-radius: 18px; background: var(--chart-bg); border: 1px solid var(--glass-border); padding: 14px; margin-bottom: 10px; animation: fadeUp 0.45s ease both; }
     .ms-card-title { display: flex; justify-content: space-between; align-items: baseline; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; }
     .ms-card-title span { letter-spacing: 0.3px; text-transform: none; font-family: var(--font-mono); font-weight: 700; color: var(--text-soft); }
     .ms-mood { display: flex; align-items: center; gap: 14px; }
     .donut-wrap { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
     .donut { width: 100%; height: 100%; }
-    .dn-track { stroke: var(--glass-border); }
+    .dn-track { stroke: var(--chart-track); }
     .dn-seg { cursor: pointer; transition: opacity 0.25s, stroke-width 0.25s; animation: dn-in 0.9s cubic-bezier(.3,.7,.3,1) both; }
     .dn-seg.dim { opacity: 0.25; }
     @keyframes dn-in { from { stroke-dasharray: 0 400; } }
@@ -830,15 +845,21 @@
     .dc-pct { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); line-height: 1.1; }
     .dc-lbl { font-size: 9px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
     .ms-list { flex: 1; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
-    .ms-row { display: grid; grid-template-columns: 18px 62px 1fr 34px; align-items: center; gap: 6px; cursor: pointer; border-radius: 8px; padding: 1px 2px; transition: background 0.2s; }
+    .ms-row { display: grid; grid-template-columns: 18px 76px 1fr 34px; align-items: center; gap: 6px; cursor: pointer; border-radius: 8px; padding: 1px 2px; transition: background 0.2s; }
     .ms-row.sel { background: var(--glass-hover); }
     .ms-emoji { font-size: 14px; }
     .ms-name { font-size: 11px; font-weight: 700; color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .ms-bar { height: 6px; border-radius: 6px; background: var(--glass-border); overflow: hidden; }
+    .ms-bar { height: 6px; border-radius: 6px; background: var(--chart-track); overflow: hidden; }
     .ms-bar i { display: block; height: 100%; border-radius: 6px; animation: bar-in 0.9s cubic-bezier(.3,.7,.3,1) both; transform-origin: left; }
     @keyframes bar-in { from { transform: scaleX(0); } }
     .ms-pct { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: var(--text); text-align: right; }
-    .ms-stack { display: flex; height: 14px; border-radius: 10px; overflow: hidden; gap: 2px; background: var(--glass-border); }
+    .ms-good { padding: 4px 2px; }
+    .ms-good .ms-name { color: var(--text); font-weight: 800; }
+    .ms-good .ms-pct { font-size: 12px; color: var(--emerald); }
+    .ms-bar-stack { display: flex; gap: 1px; }
+    .ms-bar-stack i { border-radius: 0; }
+    .ms-sub { grid-column: 2 / -1; font-size: 9.5px; color: var(--text-muted); font-weight: 600; margin-top: -2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ms-stack { display: flex; height: 14px; border-radius: 10px; overflow: hidden; gap: 2px; background: var(--chart-track); }
     .ms-stack i { display: block; height: 100%; animation: bar-in 0.9s cubic-bezier(.3,.7,.3,1) both; transform-origin: left; }
     .ms-stress-legend { display: flex; justify-content: space-between; margin-top: 10px; }
     .ms-sl { display: flex; flex-direction: column; align-items: center; gap: 1px; flex: 1; }
@@ -851,13 +872,25 @@
     .ms-months { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
     .ms-months::-webkit-scrollbar { display: none; }
     .ms-mcol { flex: 0 0 38px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: transparent; cursor: pointer; padding: 0; }
-    .ms-mbar { width: 22px; height: 90px; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; background: var(--glass-border); }
+    .ms-mbar { width: 22px; height: 90px; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; background: var(--chart-track); }
     .ms-mbar i { display: block; width: 100%; animation: col-in 0.9s cubic-bezier(.3,.7,.3,1) both; transform-origin: bottom; }
     .ms-mbar i.empty { background: transparent; }
     @keyframes col-in { from { transform: scaleY(0); } }
     .ms-mstress { font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
     .ms-mlbl { font-size: 9.5px; color: var(--text-muted); font-weight: 700; }
     .ms-note { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
+    .mood-chart-hint { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
+    /* Light theme: charts sit on clean white cards with a soft lift, so the
+       deeper chart colours read clearly instead of washing into lavender. */
+    [data-theme="light"] .mc-wrap,
+    [data-theme="light"] .ms-card { border-color: rgba(140,155,220,0.35); box-shadow: 0 2px 10px rgba(60,80,160,0.08); }
+    [data-theme="light"] .mc-month-line { stroke: rgba(110,125,180,0.45); }
+    [data-theme="light"] .mc-dot.sel { stroke: var(--text); }
+    [data-theme="light"] .mc-tip { background: rgba(255,255,255,0.95); }
+    [data-theme="light"] .ms-scope,
+    [data-theme="light"] .mood-history-toggle { background: #fff; }
+    [data-theme="light"] .ms-chip.good { border-color: rgba(10,158,105,0.35); }
+    [data-theme="light"] .ms-chip.bad  { border-color: rgba(212,40,72,0.30); background: rgba(212,40,72,0.07); }
 
     /* ── PAGES ─────────────────────────────────────── */
     .page { display: none; padding: 0; }
@@ -2198,11 +2231,13 @@
   }
 
   // ── CONFETTI (on load + manual) ────────────────────────────────
-  // Slow-motion paper confetti. Each piece is a thin sheet: it falls at a low
-  // terminal speed (air drag), sways side to side, and flips in 3-D — faked by
+  // Quick paper-confetti burst, done in about 2 s. Each piece is a thin sheet:
+  // it falls at a terminal speed tied to the screen height (so it crosses any
+  // phone in ~1.5 s), sways side to side, and flips in 3-D — faked by
   // squashing it along its tilt axis and darkening the back face — so it
-  // tumbles and catches the light the way real paper does. Physics is
-  // time-based, so the speed is the same on every phone.
+  // tumbles and catches the light the way real paper does. Everything still
+  // on screen fades out between FADE_AT and END. Physics is time-based, so
+  // the timing is the same on every phone.
   let confettiRAF = null;
   function triggerCelebration(autoMode) {
     const canvas = document.getElementById('confettiCanvas');
@@ -2216,20 +2251,21 @@
 
     const colors = ['#f5c842','#ffb347','#6c9cff','#34d99e','#ff6b7a','#ffffff','#a78bff','#5eefc0'];
     const count = autoMode ? 90 : 70;
+    const FADE_AT = 1.6, END = 2.2;                         // seconds
     const parts = [];
     for (let i = 0; i < count; i++) {
       const kind = Math.random();
       const w = 6 + Math.random() * 7;
       parts.push({
         x: Math.random() * W,
-        y: -20 - Math.random() * H * 0.35,
-        delay: Math.random() * 1.6,                        // staggered release (s)
-        vx: (Math.random() - 0.5) * 30,                    // px/s
-        vy: 15 + Math.random() * 25,
-        term: 38 + Math.random() * 42,                     // terminal fall speed px/s — slow motion
-        swayAmp: 18 + Math.random() * 30, swayFreq: 0.5 + Math.random() * 0.8, swayPh: Math.random() * 6.28,
-        flip: Math.random() * 6.28, flipSpeed: 2.2 + Math.random() * 3.2,
-        rot: Math.random() * 6.28, rotSpeed: (Math.random() - 0.5) * 2.4,
+        y: -20 - Math.random() * H * 0.25,
+        delay: Math.random() * 0.35,                       // staggered release (s)
+        vx: (Math.random() - 0.5) * 80,                    // px/s
+        vy: H * (0.25 + Math.random() * 0.25),
+        term: H * (0.6 + Math.random() * 0.35),            // terminal fall speed px/s
+        swayAmp: 25 + Math.random() * 35, swayFreq: 0.9 + Math.random() * 0.9, swayPh: Math.random() * 6.28,
+        flip: Math.random() * 6.28, flipSpeed: 5 + Math.random() * 5,
+        rot: Math.random() * 6.28, rotSpeed: (Math.random() - 0.5) * 5,
         w, h: kind < 0.7 ? w * (0.45 + Math.random() * 0.25) : 2.2,
         shape: kind < 0.7 ? 'sheet' : kind < 0.88 ? 'ribbon' : 'sequin',
         color: colors[Math.floor(Math.random() * colors.length)],
@@ -2247,14 +2283,15 @@
         if (elapsed < p.delay) { alive = true; continue; }
         const t = elapsed - p.delay;
         // gravity toward a low terminal velocity, plus gentle drag on drift
-        p.vy += (p.term - p.vy) * Math.min(1, dt * 1.6);
-        p.vx *= 1 - Math.min(1, dt * 0.8);
+        p.vy += (p.term - p.vy) * Math.min(1, dt * 3);
+        p.vx *= 1 - Math.min(1, dt * 1.2);
         const sway = Math.sin(t * p.swayFreq * 6.28 + p.swayPh) * p.swayAmp;
         p.y += p.vy * dt;
         p.x += (p.vx + sway * 0.9) * dt;
         p.flip += p.flipSpeed * dt;
         p.rot += p.rotSpeed * dt + Math.cos(t * p.swayFreq * 6.28 + p.swayPh) * 0.6 * dt;
-        if (p.y > H * 0.8) p.alpha -= dt * 0.9;
+        if (p.y > H * 0.8) p.alpha -= dt * 3;
+        if (elapsed > FADE_AT) p.alpha = Math.min(p.alpha, 1 - (elapsed - FADE_AT) / (END - FADE_AT));
         if (p.alpha <= 0 || p.y > H + 30) continue;
         alive = true;
 
@@ -2421,8 +2458,9 @@
 
   // ── MOOD TRACKER ──────────────────────────────────────────────
   // Ship-life relevant moods: happy, excited, normal, exhausted, sad + custom "other"
-  // Ordered best → worst. This same order drives the mood-history Y axis:
-  // Excited sits at the top of the chart, Sad at the bottom.
+  // Ordered best → worst. The mood-history chart plots this upside down so it
+  // reads like the stress chart: a spike up is a rough day (Sad at the top,
+  // Excited at the bottom).
   const MOOD_OPTIONS = [
     { id: 'excited',   emoji: '🤩', label: 'Excited' },
     { id: 'happy',     emoji: '😄', label: 'Happy' },
@@ -2565,15 +2603,17 @@
   }
 
   const MOOD_SCORE = { sad: 1, exhausted: 2, normal: 3, other: 3, happy: 4, excited: 5 };
-  const MOOD_COLORS = { sad: '#ff6b7a', exhausted: '#ffb347', normal: '#6c9cff', other: '#a78bff', happy: '#34d99e', excited: '#f5c842' };
+  // Colours are CSS variables so charts follow the theme (deeper tones in light).
+  const MOOD_COLORS = { sad: 'var(--m-sad)', exhausted: 'var(--m-exhausted)', normal: 'var(--m-normal)', other: 'var(--m-other)', happy: 'var(--m-happy)', excited: 'var(--m-excited)' };
+  const GOOD_MOODS = ['excited', 'happy'];   // shown together as "Good mood" in the stats
   // Stress 0–5: Low 0-1, Medium 2-3, High 4-5
   const STRESS_LEVELS = [
-    { id: 'low',  label: 'Low',    emoji: '😌', color: '#34d99e', min: 0, max: 1 },
-    { id: 'mid',  label: 'Medium', emoji: '😬', color: '#ffb347', min: 2, max: 3 },
-    { id: 'high', label: 'High',   emoji: '🤯', color: '#ff6b7a', min: 4, max: 5 },
+    { id: 'low',  label: 'Low',    emoji: '😌', color: 'var(--s0)', min: 0, max: 1 },
+    { id: 'mid',  label: 'Medium', emoji: '😬', color: 'var(--s3)', min: 2, max: 3 },
+    { id: 'high', label: 'High',   emoji: '🤯', color: 'var(--s5)', min: 4, max: 5 },
   ];
   function stressLevel(v) { return STRESS_LEVELS.find(l => v >= l.min && v <= l.max) || STRESS_LEVELS[0]; }
-  function stressColor(v) { return ['#34d99e', '#7fdc8a', '#c8d65c', '#ffb347', '#ff8a5b', '#ff6b7a'][Math.max(0, Math.min(5, Math.round(v)))]; }
+  function stressColor(v) { return `var(--s${Math.max(0, Math.min(5, Math.round(v)))})`; }
   function moodMeta(id) { return MOOD_OPTIONS.find(m => m.id === id) || MOOD_OPTIONS[2]; }
   function moodLabel(entry) { return entry.moodId === 'other' ? (entry.text || 'Other') : moodMeta(entry.moodId).label; }
   function escHtml(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
@@ -2659,7 +2699,9 @@
     const W = padL + padR + (days.length - 1) * STEP;
     const plotH = H - padT - padB;
     const [minV, maxV] = isMood ? [1, 5] : [0, 5];
-    const yFor = v => padT + (1 - (v - minV) / (maxV - minV)) * plotH;
+    // Up = worse in both views: high stress at the top, and for mood the scale
+    // is flipped so Sad sits at the top and Excited at the bottom.
+    const yFor = v => padT + (isMood ? (v - minV) / (maxV - minV) : 1 - (v - minV) / (maxV - minV)) * plotH;
     const xFor = i => padL + i * STEP;
     const val = en => isMood ? (MOOD_SCORE[en.moodId] || 3) : en.stress;
 
@@ -2679,8 +2721,8 @@
       if (!d.entry) return;
       const v = val(d.entry), y = yFor(v);
       pts.push({ x, y });
-      const color = isMood ? (MOOD_COLORS[d.entry.moodId] || '#6c9cff') : stressColor(v);
-      dots += `<circle class="mc-dot" data-i="${i}" cx="${x}" cy="${y.toFixed(1)}" r="4" fill="${color}"/>`;
+      const color = isMood ? (MOOD_COLORS[d.entry.moodId] || MOOD_COLORS.normal) : stressColor(v);
+      dots += `<circle class="mc-dot" data-i="${i}" cx="${x}" cy="${y.toFixed(1)}" r="4" style="fill:${color}"/>`;
     });
     const line = smoothPath(pts);
     const area = pts.length > 1 ? `${line} L${pts[pts.length - 1].x},${H - padB} L${pts[0].x},${H - padB} Z` : '';
@@ -2692,9 +2734,11 @@
       axis += `<div class="mc-axis-lbl${isMood ? ' emoji' : ''}" style="top:${yFor(v)}px">${lbl}</div>`;
     }
 
-    const strokeGrad = isMood
-      ? `<linearGradient id="mcStroke" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5c842"/><stop offset="50%" stop-color="#6c9cff"/><stop offset="100%" stop-color="#ff6b7a"/></linearGradient>`
-      : `<linearGradient id="mcStroke" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff6b7a"/><stop offset="50%" stop-color="#ffb347"/><stop offset="100%" stop-color="#34d99e"/></linearGradient>`;
+    // Gradients are pinned to the plot (userSpaceOnUse) so each height always
+    // gets the colour of the level drawn there, whatever range the data spans.
+    const stops = (isMood ? ['sad', 'exhausted', 'normal', 'happy', 'excited'].map(id => MOOD_COLORS[id]) : ['var(--s5)', 'var(--s3)', 'var(--s0)'])
+      .map((c, i, a) => `<stop offset="${(i / (a.length - 1) * 100).toFixed(0)}%" style="stop-color:${c}"/>`).join('');
+    const strokeGrad = `<linearGradient id="mcStroke" gradientUnits="userSpaceOnUse" x1="0" y1="${padT}" x2="0" y2="${H - padB}">${stops}</linearGradient>`;
 
     container.innerHTML = `
       <div class="mc-wrap">
@@ -2704,9 +2748,10 @@
           <svg class="mood-chart-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
             <defs>
               ${strokeGrad}
-              <linearGradient id="mcArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="${isMood ? '#34d99e' : '#ffb347'}" stop-opacity="0.28"/>
-                <stop offset="100%" stop-color="${isMood ? '#6c9cff' : '#34d99e'}" stop-opacity="0"/>
+              <linearGradient id="mcArea" gradientUnits="userSpaceOnUse" x1="0" y1="${padT}" x2="0" y2="${H - padB}">
+                <stop offset="0%" style="stop-color:var(--s5);stop-opacity:var(--chart-area-op)"/>
+                <stop offset="55%" style="stop-color:var(--s3);stop-opacity:calc(var(--chart-area-op) * 0.5)"/>
+                <stop offset="100%" style="stop-color:var(--s0);stop-opacity:0"/>
               </linearGradient>
             </defs>
             ${grid}${months}
@@ -2719,9 +2764,10 @@
       </div>
       <div class="mood-legend">
         ${isMood
-          ? MOOD_OPTIONS.filter(m => m.id !== 'other').map(m => `<div class="mood-legend-item"><span class="mood-legend-dot" style="background:${MOOD_COLORS[m.id]}"></span>${m.emoji} ${m.label}</div>`).join('')
-          : STRESS_LEVELS.map(l => `<div class="mood-legend-item"><span class="mood-legend-dot" style="background:${l.color}"></span>${l.emoji} ${l.label} (${l.min}–${l.max})</div>`).join('')}
+          ? MOOD_OPTIONS.filter(m => m.id !== 'other').reverse().map(m => `<div class="mood-legend-item"><span class="mood-legend-dot" style="background:${MOOD_COLORS[m.id]}"></span>${m.emoji} ${m.label}</div>`).join('')
+          : STRESS_LEVELS.slice().reverse().map(l => `<div class="mood-legend-item"><span class="mood-legend-dot" style="background:${l.color}"></span>${l.emoji} ${l.label} (${l.min}–${l.max})</div>`).join('')}
       </div>
+      <div class="mood-chart-hint">▲ Higher on the chart = a tougher day, in both Mood and Stress</div>
       <div id="moodStats"></div>`;
 
     // Open on today; earlier months are a swipe to the left.
@@ -2802,7 +2848,7 @@
       const p = st.moodPct[id] / 100;
       if (p <= 0) return;
       const len = Math.max(p * C - 2, 0.5);
-      segs += `<circle class="dn-seg" data-id="${id}" cx="60" cy="60" r="${R}" fill="none" stroke="${MOOD_COLORS[id]}" stroke-width="14"
+      segs += `<circle class="dn-seg" data-id="${id}" cx="60" cy="60" r="${R}" fill="none" style="stroke:${MOOD_COLORS[id]}" stroke-width="14"
                  stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" stroke-linecap="round"/>`;
       off += p * C;
     });
@@ -2834,6 +2880,16 @@
     const mp = roundPcts(st.moodPct, ids);
     const sp = roundPcts(st.stressPct, ['low', 'mid', 'high']);
     const top = ids.slice().sort((a, b) => st.moods[b] - st.moods[a])[0];
+    // Good mood = Happy + Excited, shown as one figure with its breakdown.
+    const goodIds = GOOD_MOODS.filter(id => st.moods[id]);
+    const goodPct = goodIds.reduce((a, id) => a + mp[id], 0);
+    const GOOD = { emoji: '😊', label: 'Good mood' };
+    const centerHtml = id => {
+      const m = id === 'good' ? GOOD : moodMeta(id);
+      return `<div class="dc-emoji">${m.emoji}</div><div class="dc-pct">${id === 'good' ? goodPct : mp[id]}%</div><div class="dc-lbl">${m.label}</div>`;
+    };
+    const rows = [...(goodIds.length ? ['good'] : []), ...ids.filter(id => !GOOD_MOODS.includes(id))]
+      .sort((a, b) => (a === 'good' ? goodPct : mp[a]) < (b === 'good' ? goodPct : mp[b]) ? 1 : -1);
     const nowMonth = new Date(); nowMonth.setDate(1);
     const canNext = moodStatsScope === 'month' && moodStatsMonth < new Date(nowMonth.getFullYear(), nowMonth.getMonth(), 1);
 
@@ -2863,14 +2919,17 @@
         <div class="ms-mood">
           <div class="donut-wrap">
             ${donutSvg(st, ids)}
-            <div class="donut-center" id="donutCenter">
-              <div class="dc-emoji">${moodMeta(top).emoji}</div>
-              <div class="dc-pct">${mp[top]}%</div>
-              <div class="dc-lbl">${moodMeta(top).label}</div>
-            </div>
+            <div class="donut-center" id="donutCenter">${centerHtml(goodIds.length ? 'good' : top)}</div>
           </div>
           <div class="ms-list">
-            ${ids.sort((a, b) => st.moods[b] - st.moods[a]).map(id => `
+            ${rows.map(id => id === 'good' ? `
+              <div class="ms-row ms-good" data-id="good">
+                <span class="ms-emoji">${GOOD.emoji}</span>
+                <span class="ms-name">${GOOD.label}</span>
+                <span class="ms-bar ms-bar-stack">${goodIds.map(g => `<i style="width:${mp[g]}%;background:${MOOD_COLORS[g]}"></i>`).join('')}</span>
+                <span class="ms-pct">${goodPct}%</span>
+                <span class="ms-sub">${goodIds.map(g => `${moodMeta(g).emoji} ${moodMeta(g).label} ${mp[g]}%`).join(' + ')}</span>
+              </div>` : `
               <div class="ms-row" data-id="${id}">
                 <span class="ms-emoji">${moodMeta(id).emoji}</span>
                 <span class="ms-name">${moodMeta(id).label}</span>
@@ -2899,9 +2958,12 @@
     if (prev && prev.n) {
       const chips = [];
       const delta = (a, b) => Math.round(a - b);
-      ['excited', 'happy', 'normal', 'exhausted', 'sad'].forEach(id => {
+      const goodOf = x => GOOD_MOODS.reduce((a, id) => a + x.moodPct[id], 0);
+      const gd = delta(goodOf(st), goodOf(prev));
+      if (gd !== 0) chips.push({ txt: '😊 Good mood', d: gd, good: gd > 0 });
+      ['normal', 'exhausted', 'sad'].forEach(id => {
         const d = delta(st.moodPct[id], prev.moodPct[id]);
-        if (d !== 0) chips.push({ txt: `${moodMeta(id).emoji} ${moodMeta(id).label}`, d, good: (MOOD_SCORE[id] >= 4) === (d > 0) });
+        if (d !== 0) chips.push({ txt: `${moodMeta(id).emoji} ${moodMeta(id).label}`, d, good: d < 0 });
       });
       const hd = delta(st.stressPct.high, prev.stressPct.high);
       if (hd !== 0) chips.push({ txt: '🤯 High stress', d: hd, good: hd < 0 });
@@ -2945,10 +3007,12 @@
 
     // Donut ↔ list: tap a slice or row to see its share in the centre.
     const center = document.getElementById('donutCenter');
+    // "good" lights up both the Happy and Excited slices.
     const focus = id => {
-      center.innerHTML = `<div class="dc-emoji">${moodMeta(id).emoji}</div><div class="dc-pct">${mp[id]}%</div><div class="dc-lbl">${moodMeta(id).label}</div>`;
-      box.querySelectorAll('.dn-seg').forEach(c => c.classList.toggle('dim', c.dataset.id !== id));
-      box.querySelectorAll('.ms-row').forEach(r => r.classList.toggle('sel', r.dataset.id === id));
+      center.innerHTML = centerHtml(id);
+      const row = GOOD_MOODS.includes(id) ? 'good' : id;
+      box.querySelectorAll('.dn-seg').forEach(c => c.classList.toggle('dim', id === 'good' ? !GOOD_MOODS.includes(c.dataset.id) : c.dataset.id !== id));
+      box.querySelectorAll('.ms-row').forEach(r => r.classList.toggle('sel', r.dataset.id === row));
     };
     box.querySelectorAll('.dn-seg, .ms-row').forEach(el => el.addEventListener('click', () => focus(el.dataset.id)));
   }
